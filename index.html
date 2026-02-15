@@ -285,7 +285,7 @@
         }
 
         .hole-carousel {
-            min-width: 162px;
+            min-width: 178px;
             height: 45px;
             border-radius: 23.5px;
             display: inline-flex;
@@ -338,15 +338,16 @@
         }
 
         .hole-nav-button {
-            width: 34px;
-            height: 34px;
+            width: 45px;
+            height: 45px;
             flex: 0 0 auto;
             padding: 0;
+            border-radius: 22.5px;
         }
 
         .hole-nav-button svg {
-            width: 14px;
-            height: 14px;
+            width: 21px;
+            height: 21px;
             display: block;
             pointer-events: none;
         }
@@ -375,6 +376,18 @@
             z-index: 0;
             -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
             transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        /* Keep hole-nav hover effect at original 34×34 size */
+        .hole-nav-button::before {
+            inset: auto;
+            width: 34px;
+            height: 34px;
+            left: 50%;
+            top: 50%;
+            margin-left: -17px;
+            margin-top: -17px;
+            border-radius: 17px;
         }
 
         @media (hover:hover) {
@@ -1278,6 +1291,9 @@
         <div id="detailsButton" class="menu-button">
             <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg" alt="Details" draggable="false">
         </div>
+        <div id="compassButton" class="menu-button">
+            <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
+        </div>
         <div id="holeCarousel" class="hole-carousel" role="group" aria-label="Hole selector">
             <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1292,9 +1308,6 @@
                     <path d="M9.5 5.5L16 12l-6.5 6.5"></path>
                 </svg>
             </button>
-        </div>
-        <div id="compassButton" class="menu-button">
-            <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
         </div>
     </div>
 
@@ -1689,10 +1702,10 @@
     controls.dampingFactor = 0.08;
     controls.enablePan = true;
     controls.enableRotate = true;
-    controls.screenSpacePanning = false;
+    controls.screenSpacePanning = true;  // Google Earth style: drag direction = movement direction on screen
     controls.zoomSpeed = 0.7;
-    controls.panSpeed = 1.0;
-    controls.rotateSpeed = 0.6;
+    controls.panSpeed = 1.2;
+    controls.rotateSpeed = 0.5;
     controls.mouseButtons.LEFT = MOUSE.PAN;
     controls.mouseButtons.MIDDLE = MOUSE.DOLLY;
     controls.mouseButtons.RIGHT = MOUSE.ROTATE;
@@ -1708,7 +1721,22 @@
     controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
     controls.update();
 
-    let sceneCenter = new Vector3(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
+    // Google Earth style: when panning (drag), move both camera and target together (translate view)
+    // instead of orbiting around the target. Tracks previous state to detect pan vs rotate.
+    const panState = {
+        userInteracting: false,
+        prevTarget: new Vector3().copy(controls.target),
+        prevCamera: new Vector3().copy(camera.position)
+    };
+    controls.addEventListener('start', () => {
+        clearTimeout(panState._dampingTimeout);
+        panState.userInteracting = true;
+    });
+    controls.addEventListener('end', () => {
+        // Keep translate behavior during damping settle (avoids snap when releasing)
+        clearTimeout(panState._dampingTimeout);
+        panState._dampingTimeout = setTimeout(() => { panState.userInteracting = false; }, 150);
+    });
 
     controls.addEventListener('change', () => {
         // Restrict camera Y minimum
@@ -1731,26 +1759,17 @@
             controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
         }
 
-        // Restrict camera distance from the scene center
-        const maxDistance = calculateMaxDistance();  // Get the updated max distance
-        if (camera.position.distanceTo(sceneCenter) > maxDistance) {
-            let direction = new Vector3().subVectors(camera.position, sceneCenter).normalize();
-            camera.position.copy(direction.multiplyScalar(maxDistance).add(sceneCenter));
+        // Google Earth pan: when user drags (pan), translate both camera and target together
+        // so the view slides like a map instead of orbiting. Target change = pan (rotate/dolly don't move target).
+        if (panState.userInteracting) {
+            const delta = new Vector3().subVectors(controls.target, panState.prevTarget);
+            const deltaLen = delta.length();
+            if (deltaLen > 1e-8) {
+                camera.position.copy(panState.prevCamera).add(delta);
+            }
         }
-
-        // Clamp camera to minDistance
-        const minDistCenter = new Vector3(
-            parameters.minDistance.center.x, 
-            parameters.minDistance.center.y, 
-            parameters.minDistance.center.z
-        );
-        if (camera.position.distanceTo(minDistCenter) < parameters.minDistance.radius) {
-            let direction = new Vector3().subVectors(camera.position, minDistCenter).normalize();
-            camera.position.copy(direction.multiplyScalar(parameters.minDistance.radius).add(minDistCenter));
-        }
-
-        // Hole-based splat visibility is handled by setActiveHole() / holeSplats
-        // (Zone-based splat toggling was from simple-google-earth-mechanics; main uses hole carousel instead)
+        panState.prevTarget.copy(controls.target);
+        panState.prevCamera.copy(camera.position);
     });
 
     // Developer mode toggle
