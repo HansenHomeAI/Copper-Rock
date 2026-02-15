@@ -1445,7 +1445,7 @@
         },
         scene: {
             origin: { x: 0, y: -0.06, z: 0 },
-            targetLimit: { x: 2, z: 2 }
+            targetLimit: null  // null = no X/Z bounds on center point; use { x: 2, z: 2 } to restrict
         },
         animation: {
             autoRotate: false,
@@ -1541,6 +1541,7 @@
 
     // TapDots: info icons (No Photos) = label pops up above; camera icons = photo popup with caption
     // Camera icons use photos[] array for carousel; add more paths to include more images per location
+    const tapDotsConfig = { visible: false };  // off for now; set true when needed
     const tapDotConfigurations = [
         // Camera icons (have photos) - photos[] = carousel images, caption = bio in popup (scale 0.225 = 25% smaller)
         { position: { x: -0.214299, y: -0.098, z: -0.445458 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Chicken Coop/1.jpg', '3D Model Folders/Chicken Coop/2.jpg', '3D Model Folders/Chicken Coop/3.jpg'], caption: 'Chicken Coop', priority: 'low' },
@@ -1612,6 +1613,15 @@
         { start: 'Lot_V18', end: 'Lot_V21' },
         { start: 'Lot_V21', end: 'Lot_V15' }
     ];
+
+    // Lot lines visibility: independent (always shown) or tied to specific holes/splats
+    // - visible: false = hide lot lines entirely (re-enable when needed)
+    // - holes: undefined | null = independent, always visible regardless of selected splat
+    // - holes: [0, 1, 2] = only visible when hole index is 0, 1, or 2
+    const lotLinesConfig = {
+        visible: false,  // off for now; set true when needed
+        holes: undefined  // independent (always shown). Use e.g. holes: [0, 1] to tie to holes 0 and 1 only
+    };
 
     // Border Dot Parameters
     const borderDotParams = {
@@ -1706,17 +1716,20 @@
             camera.position.y += (parameters.camera.minY - camera.position.y) * parameters.rebound.speed;
         }
 
-        // Restrict target movement on X and Z axes with elastic rebound
-        const clampRebound = (current, min, max) => {
-            let clamped = Math.min(Math.max(current, min), max);
-            return clamped + (current - clamped) * parameters.rebound.elasticity;
-        };
-        controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
+        // Restrict target movement on X and Z axes (when targetLimit is set)
+        const tl = parameters.scene.targetLimit;
+        if (tl && typeof tl.x === 'number' && typeof tl.z === 'number') {
+            const clampRebound = (current, min, max) => {
+                let clamped = Math.min(Math.max(current, min), max);
+                return clamped + (current - clamped) * parameters.rebound.elasticity;
+            };
+            controls.target.x = clampRebound(controls.target.x, -tl.x, tl.x);
+            controls.target.z = clampRebound(controls.target.z, -tl.z, tl.z);
+        }
         const preserveLookTargetY = (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled);
         if (!preserveLookTargetY) {
             controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
         }
-        controls.target.z = clampRebound(controls.target.z, -parameters.scene.targetLimit.z, parameters.scene.targetLimit.z);
 
         // Restrict camera distance from the scene center
         const maxDistance = calculateMaxDistance();  // Get the updated max distance
@@ -1975,6 +1988,7 @@
         applyHoleView(nextConfig, resetCamera);
         applyHoleAnimation(nextConfig);
         updateHoleCarouselLabel();
+        if (typeof refreshBorderVisualState === 'function') refreshBorderVisualState();
     }
 
     function cycleHole(direction) {
@@ -2235,10 +2249,14 @@
     }
 
     function refreshBorderVisualState() {
+        const lotVisible = lotLinesConfig.visible !== false;
+        const holes = lotLinesConfig && lotLinesConfig.holes;
+        const showLotLines = lotVisible && (!holes || !Array.isArray(holes) || holes.length === 0 || (typeof activeHoleIndex !== 'undefined' && holes.includes(activeHoleIndex)));
         const dotOpacity = getVisibleDotOpacity();
         const selectedName = lotEditState.selectedVertexName;
         const mergeTargetName = lotEditState.dragging.mergeTargetName;
         Object.entries(borderDots).forEach(([name, dotMesh]) => {
+            dotMesh.visible = showLotLines;
             dotMesh.material.opacity = dotOpacity;
             dotMesh.material.color.setHex(borderDotParams.color);
             dotMesh.scale.set(1, 0.1, 1);
@@ -2252,11 +2270,12 @@
         });
         const lineOpacity = getVisibleLineOpacity();
         borderLines.forEach((lineMesh) => {
+            lineMesh.visible = showLotLines;
             lineMesh.material.opacity = lineOpacity;
             lineMesh.material.color.setHex(lotEditState.active ? 0xe8e8e8 : borderDotParams.color);
         });
         tapDots.forEach((tapDot) => {
-            const showDot = lotEditState.active;
+            const showDot = tapDotsConfig.visible !== false && lotEditState.active;
             tapDot.dot.visible = showDot;
             tapDot.iconMesh.visible = showDot;
             if (showDot) {
@@ -2795,7 +2814,7 @@
 
         // Update 2D label overlay: project to screen, depth-sort, smooth position/opacity
         const labelsLayer = document.getElementById('tapdot-labels-layer');
-        const labelsVisible = labelsLayer && !window.isTapdotPopupOpen && !isDetailsOpen;
+        const labelsVisible = labelsLayer && tapDotsConfig.visible !== false && !window.isTapdotPopupOpen && !isDetailsOpen;
         if (labelsLayer) labelsLayer.style.display = labelsVisible ? 'block' : 'none';
         if (labelsVisible) {
             const overlapPadding = 6;
