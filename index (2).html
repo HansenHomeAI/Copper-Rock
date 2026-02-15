@@ -175,12 +175,12 @@
         /* Parent Menu (default base values) */
         .menu-container {
             display: flex;
-            width: 105px;
-            height: 59px;
+            width: max-content;
+            min-height: 59px;
             padding: 7px;
             justify-content: center;
-            align-items: flex-start;
-            gap: 1px;
+            align-items: center;
+            gap: 2px;
             border-radius: 30px;
             position: absolute;
             bottom: 20px;
@@ -282,6 +282,120 @@
             -webkit-transform: scale(1);
             transform: scale(1);
             opacity: 1;
+        }
+
+        .hole-carousel {
+            min-width: 162px;
+            height: 45px;
+            border-radius: 23.5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 0 4px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+
+        .hole-carousel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.28) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.28) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.1px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hole-nav-button,
+        .hole-label-button {
+            border: 0;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.94);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            position: relative;
+            z-index: 1;
+            border-radius: 18px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+
+        .hole-nav-button {
+            width: 34px;
+            height: 34px;
+            flex: 0 0 auto;
+            padding: 0;
+        }
+
+        .hole-nav-button svg {
+            width: 14px;
+            height: 14px;
+            display: block;
+            pointer-events: none;
+        }
+
+        .hole-label-button {
+            min-width: 84px;
+            height: 34px;
+            padding: 0 10px;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .hole-nav-button::before,
+        .hole-label-button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            background: rgba(255,255,255,0.15);
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 0;
+            z-index: 0;
+            -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        @media (hover:hover) {
+            .hole-nav-button:hover::before,
+            .hole-label-button:hover::before {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .hole-nav-button.active::before,
+        .hole-label-button.active::before {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        .hole-label-button span {
+            position: relative;
+            z-index: 1;
         }
 
         /* Details Box (default base values) */
@@ -1042,6 +1156,21 @@
         <div id="detailsButton" class="menu-button">
             <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg" alt="Details" draggable="false">
         </div>
+        <div id="holeCarousel" class="hole-carousel" role="group" aria-label="Hole selector">
+            <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M14.5 18.5L8 12l6.5-6.5"></path>
+                </svg>
+            </button>
+            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Cycle holes">
+                <span id="holeLabelText">Hole 1</span>
+            </button>
+            <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M9.5 5.5L16 12l-6.5 6.5"></path>
+                </svg>
+            </button>
+        </div>
         <div id="compassButton" class="menu-button">
             <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
         </div>
@@ -1148,9 +1277,9 @@
     }
     </script>
     <script type="module">
-    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane } from 'three';
+    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane, MOUSE, TOUCH } from 'three';
 
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { MapControls } from 'three/addons/controls/MapControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
 
     function isChrome() {
@@ -1160,38 +1289,28 @@
     // Parameters
     const parameters = {
         camera: {
-            minY: 0.14,
+            minHeightAboveTarget: 0.12,
             maxZoomOut: 1000,
-            startPosition: { x: 0, y: 0.4, z: 4.7 },
+            startPosition: { x: 0.2, y: 0.55, z: 2.8 },
         },
         scene: {
-            origin: { x: 0, y: -0.1, z: 0 },
-            targetLimit: { x: 2, z: 2 }
+            origin: { x: 0, y: -0.06, z: 0 }
         },
         animation: {
-            autoRotate: true,
-            startRadius: 3,
-            speed: -0.003,
-            initialAngle: 290,  // Start at 200 degrees
-            center: { x: 0, y: 0, z: 0 }   // ← new!
-        },
-        rebound: {
-            speed: 0.2,
-            elasticity: 0.05
+            autoRotate: false,
+            startRadius: 2.9,
+            speed: -0.0016,
+            initialAngle: 294,
+            center: { x: 0, y: -0.06, z: 0 }
         },
         maxDistance: {
-            base: 5,
-            responsiveness: 1.7
-        },
-        // (1) Added new minDistance parameter
-        minDistance: {
-            center: { x: 0, y: 0, z: 0 },
-            radius: 0.8
+            base: 8.2,
+            responsiveness: 1.4
         },
         developerMode: false,  // Set this to true to activate developer mode
         // Compass configuration - easily adjustable
         compass: {
-            northDirection: 270  // 0 = positive Z axis, 90 = positive X axis, etc.
+            northDirection: 0  // 0 = positive Z axis, 90 = positive X axis, etc.
         }
     };
 
@@ -1319,20 +1438,7 @@
     const tapDotBaseSize = 0.08; // TapDot sphere size (doubled for better visibility)
     const iconBaseSize = 0.16;   // Icon size (doubled for better visibility)
 
-    // Zone configurations
-    const zoneConfigurations = [
-        {
-            name: 'Zone1',
-            center: { x: 0, y: 0, z: 0 }, // Center point of the zone
-            radius: 100.6, // Radius of the zone
-            splatsOn: ['splat2'], // Splats to turn ON when inside this zone
-            splatsOff: ['splat1'] // Splats to turn OFF when inside this zone
-        }
-    ];
-
-    if (isChrome()) {
-        parameters.animation.speed *= 0.5;
-    }
+    const chromeAnimationScale = isChrome() ? 0.5 : 1;
 
     let renderer = new WebGLRenderer({ antialias: false });
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -1347,161 +1453,293 @@
     let camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, parameters.camera.maxZoomOut);
     camera.position.set(parameters.camera.startPosition.x, parameters.camera.startPosition.y, parameters.camera.startPosition.z);
 
-    let controls = new OrbitControls(camera, renderer.domElement);
+    let controls = new MapControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-
-    // (2) Halved the zoom sensitivity
-    controls.zoomSpeed = 0.5;
-
-	// ←– Shoot the target at your origin
-	controls.target.set(0, 0, 0);
-	controls.update();  // make OrbitControls re-sync to that new target
-
-    let sceneCenter = new Vector3(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
-
-    controls.addEventListener('change', () => {
-        // Restrict camera Y minimum
-        if (camera.position.y < parameters.camera.minY) {
-            camera.position.y += (parameters.camera.minY - camera.position.y) * parameters.rebound.speed;
-        }
-
-        // Restrict target movement on X and Z axes with elastic rebound
-        const clampRebound = (current, min, max) => {
-            let clamped = Math.min(Math.max(current, min), max);
-            return clamped + (current - clamped) * parameters.rebound.elasticity;
-        };
-        controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
-        controls.target.y = parameters.scene.origin.y; // Set target Y limit
-        controls.target.z = clampRebound(controls.target.z, -parameters.scene.targetLimit.z, parameters.scene.targetLimit.z);
-
-        // Restrict camera distance from the scene center
-        const maxDistance = calculateMaxDistance();  // Get the updated max distance
-        if (camera.position.distanceTo(sceneCenter) > maxDistance) {
-            let direction = new Vector3().subVectors(camera.position, sceneCenter).normalize();
-            camera.position.copy(direction.multiplyScalar(maxDistance).add(sceneCenter));
-        }
-
-        // (3) Clamp camera to new minDistance
-        const minDistCenter = new Vector3(
-            parameters.minDistance.center.x, 
-            parameters.minDistance.center.y, 
-            parameters.minDistance.center.z
-        );
-        if (camera.position.distanceTo(minDistCenter) < parameters.minDistance.radius) {
-            let direction = new Vector3().subVectors(camera.position, minDistCenter).normalize();
-            camera.position.copy(direction.multiplyScalar(parameters.minDistance.radius).add(minDistCenter));
-        }
-
-        // Zone-based splat toggling
-        if (!developerMode) {
-            let cameraInZone = false;
-
-            for (let zone of zoneConfigurations) {
-                let zoneCenter = new Vector3(zone.center.x, zone.center.y, zone.center.z);
-                let distanceToZone = camera.position.distanceTo(zoneCenter);
-
-                if (distanceToZone <= zone.radius) {
-                    cameraInZone = true;
-                    // Turn the "new" splats on immediately
-                    for (let splatName of zone.splatsOn) {
-                        if (splats[splatName] && !splats[splatName].visible) {
-                            splats[splatName].visible = true;
-                        }
-                    }
-                    // Turn the "old" splats off after 30ms delay
-                    for (let splatName of zone.splatsOff) {
-                        if (splats[splatName] && splats[splatName].visible) {
-                            setTimeout(() => {
-                                splats[splatName].visible = false;
-                            }, 15);
-                        }
-                    }
-                    break; // Assuming only one zone is active at a time
-                }
-            }
-
-            if (!cameraInZone) {
-                // Set default splat visibility when not in any zone
-                // "new" is splat1 here, so it goes on right away
-                splats.splat1.visible = true;
-                // "old" is splat2 here, so it goes off after 30ms
-                if (splats.splat2.visible) {
-                    setTimeout(() => {
-                        splats.splat2.visible = false;
-                    }, 15);
-                }
-            }
-        }
-    });
+    controls.enablePan = true;
+    controls.enableRotate = true;
+    controls.screenSpacePanning = false;
+    controls.zoomSpeed = 0.75;
+    controls.panSpeed = 1.08;
+    controls.rotateSpeed = 0.8;
+    controls.mouseButtons.LEFT = MOUSE.PAN;
+    controls.mouseButtons.MIDDLE = MOUSE.DOLLY;
+    controls.mouseButtons.RIGHT = MOUSE.ROTATE;
+    controls.touches.ONE = TOUCH.PAN;
+    controls.touches.TWO = TOUCH.DOLLY_ROTATE;
+    controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
+    controls.minDistance = 0.6;
+    controls.maxDistance = calculateMaxDistance();
+    controls.minPolarAngle = MathUtils.degToRad(14);
+    controls.maxPolarAngle = MathUtils.degToRad(84);
+    controls.update();
 
     // Developer mode toggle
     const developerMode = parameters.developerMode;
 
-    // Splat configurations
-    const splatConfigs = {
-        splat1: {
-            source: '',
-            position: new Vector3(0.063, 0, -0.165),
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: 1
+    // Golf hole configurations. Each hole can be tuned independently (source, orientation, camera and animation).
+    const holeConfigurations = [
+        {
+            id: 'hole-1',
+            label: 'Hole 1',
+            source: 'https://lumalabs.ai/embed/4f1a479a-1d13-4178-ade4-75a8fd4d9968?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
+            revealDuration: 2.8,
+            splat: {
+                position: { x: 0, y: 0, z: 0 },
+                rotation: { x: 0, y: 0, z: 0 },
+                scale: 1
+            },
+            view: {
+                startPosition: { x: 0.22, y: 0.6, z: 2.75 },
+                target: { x: 0, y: -0.06, z: 0 },
+                minDistance: 0.65,
+                maxDistance: 10.4,
+                minPolarAngle: 14,
+                maxPolarAngle: 84,
+                northDirection: 358
+            },
+            animation: {
+                autoRotate: false,
+                speed: -0.0015,
+                startRadius: 2.8,
+                initialAngle: 292,
+                center: { x: 0, y: -0.06, z: 0 }
+            }
         },
-        splat2: {
-            source: 'https://lumalabs.ai/embed/55b8976d-0a05-4f46-b5dc-0ea29aeae1f5?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
-            position: new Vector3(0, 0, 0),
-            rotation: { x: 0, y: 0, z: 0 },
-            scale: 1
+        {
+            id: 'hole-2',
+            label: 'Hole 2',
+            source: 'https://lumalabs.ai/embed/5c2af9e1-b55f-407c-ad17-d5ea73d4a2ee?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
+            revealDuration: 2.6,
+            splat: {
+                position: { x: 0, y: 0, z: 0 },
+                rotation: { x: 0, y: 4, z: 0 },
+                scale: 1
+            },
+            view: {
+                startPosition: { x: -0.36, y: 0.58, z: 2.68 },
+                target: { x: 0, y: -0.06, z: 0 },
+                minDistance: 0.62,
+                maxDistance: 10.8,
+                minPolarAngle: 14,
+                maxPolarAngle: 84,
+                northDirection: 10
+            },
+            animation: {
+                autoRotate: false,
+                speed: -0.0016,
+                startRadius: 2.9,
+                initialAngle: 310,
+                center: { x: 0, y: -0.06, z: 0 }
+            }
+        },
+        {
+            id: 'hole-3',
+            label: 'Hole 3',
+            source: 'https://lumalabs.ai/embed/f1e713a9-7bc4-43f0-8cb1-9c8fef376382?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
+            revealDuration: 2.7,
+            splat: {
+                position: { x: 0, y: 0, z: 0 },
+                rotation: { x: 0, y: -6, z: 0 },
+                scale: 1
+            },
+            view: {
+                startPosition: { x: 0.46, y: 0.61, z: 2.86 },
+                target: { x: 0, y: -0.06, z: 0 },
+                minDistance: 0.7,
+                maxDistance: 11.2,
+                minPolarAngle: 14,
+                maxPolarAngle: 84,
+                northDirection: 24
+            },
+            animation: {
+                autoRotate: false,
+                speed: -0.00145,
+                startRadius: 3,
+                initialAngle: 274,
+                center: { x: 0, y: -0.06, z: 0 }
+            }
+        },
+        {
+            id: 'hole-4',
+            label: 'Hole 4',
+            source: 'https://lumalabs.ai/embed/39b7b61b-1c13-4cda-b10d-886b723c9a6a?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
+            revealDuration: 2.6,
+            splat: {
+                position: { x: 0, y: 0, z: 0 },
+                rotation: { x: 0, y: 8, z: 0 },
+                scale: 1
+            },
+            view: {
+                startPosition: { x: -0.24, y: 0.57, z: 2.66 },
+                target: { x: 0, y: -0.06, z: 0 },
+                minDistance: 0.64,
+                maxDistance: 11,
+                minPolarAngle: 14,
+                maxPolarAngle: 84,
+                northDirection: 36
+            },
+            animation: {
+                autoRotate: false,
+                speed: -0.00155,
+                startRadius: 2.85,
+                initialAngle: 332,
+                center: { x: 0, y: -0.06, z: 0 }
+            }
         }
-    };
+    ];
 
-    // Create the first splat
-    let splat = new LumaSplatsThree({
-        source: splatConfigs.splat1.source,
-        particleRevealEnabled: true,
-        particleRevealDuration: 3.33 // Speed up by 50%
+    const holeSplats = new Array(holeConfigurations.length).fill(null);
+    let activeHoleIndex = 0;
+    let angle = MathUtils.degToRad(parameters.animation.initialAngle);
+    let autoRotate = parameters.animation.autoRotate;
+
+    function getActiveHoleConfig() {
+        return holeConfigurations[activeHoleIndex] || holeConfigurations[0];
+    }
+
+    function applyHoleSplatTransform(holeSplat, holeConfig) {
+        const splatConfig = holeConfig && holeConfig.splat ? holeConfig.splat : {};
+        const position = splatConfig.position || { x: 0, y: 0, z: 0 };
+        const rotation = splatConfig.rotation || { x: 0, y: 0, z: 0 };
+        const scale = Number.isFinite(splatConfig.scale) ? splatConfig.scale : 1;
+        holeSplat.position.set(position.x, position.y, position.z);
+        holeSplat.rotation.x = MathUtils.degToRad(rotation.x || 0);
+        holeSplat.rotation.y = MathUtils.degToRad(rotation.y || 0);
+        holeSplat.rotation.z = MathUtils.degToRad(rotation.z || 0);
+        holeSplat.scale.setScalar(scale);
+    }
+
+    function createHoleSplat(holeConfig) {
+        const holeSplat = new LumaSplatsThree({
+            source: holeConfig.source,
+            particleRevealEnabled: true,
+            particleRevealDuration: holeConfig.revealDuration || 2.7
+        });
+        if (holeSplat.material) {
+            holeSplat.material.depthTest = true;
+        }
+        holeSplat.renderOrder = 999;
+        applyHoleSplatTransform(holeSplat, holeConfig);
+        holeSplat.visible = false;
+        scene.add(holeSplat);
+        return holeSplat;
+    }
+
+    function ensureHoleSplat(index) {
+        if (!holeSplats[index]) {
+            holeSplats[index] = createHoleSplat(holeConfigurations[index]);
+        }
+        return holeSplats[index];
+    }
+
+    function getConfiguredMaxDistance(holeConfig) {
+        const configuredMaxDistance = holeConfig && holeConfig.view ? holeConfig.view.maxDistance : undefined;
+        if (Number.isFinite(configuredMaxDistance)) return configuredMaxDistance;
+        return calculateMaxDistance();
+    }
+
+    function applyHoleAnimation(holeConfig) {
+        const animationConfig = holeConfig && holeConfig.animation ? holeConfig.animation : {};
+        const center = animationConfig.center || (holeConfig && holeConfig.view ? holeConfig.view.target : parameters.scene.origin);
+        parameters.animation.center = {
+            x: center.x,
+            y: center.y,
+            z: center.z
+        };
+        parameters.animation.startRadius = Number.isFinite(animationConfig.startRadius)
+            ? animationConfig.startRadius
+            : camera.position.distanceTo(controls.target);
+        parameters.animation.speed = (Number.isFinite(animationConfig.speed) ? animationConfig.speed : -0.0014) * chromeAnimationScale;
+        parameters.animation.initialAngle = Number.isFinite(animationConfig.initialAngle) ? animationConfig.initialAngle : 0;
+        parameters.animation.autoRotate = !!animationConfig.autoRotate;
+        angle = MathUtils.degToRad(parameters.animation.initialAngle);
+        autoRotate = parameters.animation.autoRotate;
+    }
+
+    function applyHoleView(holeConfig, resetCamera = true) {
+        const viewConfig = holeConfig && holeConfig.view ? holeConfig.view : {};
+        const target = viewConfig.target || parameters.scene.origin;
+        controls.target.set(target.x, target.y, target.z);
+        controls.minDistance = Number.isFinite(viewConfig.minDistance) ? viewConfig.minDistance : 0.6;
+        controls.maxDistance = Math.max(controls.minDistance + 0.01, getConfiguredMaxDistance(holeConfig));
+        controls.minPolarAngle = MathUtils.degToRad(Number.isFinite(viewConfig.minPolarAngle) ? viewConfig.minPolarAngle : 14);
+        controls.maxPolarAngle = MathUtils.degToRad(Number.isFinite(viewConfig.maxPolarAngle) ? viewConfig.maxPolarAngle : 84);
+
+        if (resetCamera && viewConfig.startPosition) {
+            camera.position.set(
+                viewConfig.startPosition.x,
+                viewConfig.startPosition.y,
+                viewConfig.startPosition.z
+            );
+        }
+
+        if (Number.isFinite(viewConfig.northDirection)) {
+            parameters.compass.northDirection = viewConfig.northDirection;
+        }
+        controls.update();
+        updateCompassIcon();
+    }
+
+    function updateHoleCarouselLabel() {
+        const holeLabelText = document.getElementById('holeLabelText');
+        const holeLabelButton = document.getElementById('holeLabelButton');
+        const activeConfig = getActiveHoleConfig();
+        if (!activeConfig || !holeLabelText) return;
+        holeLabelText.textContent = activeConfig.label;
+        if (holeLabelButton) {
+            holeLabelButton.setAttribute('aria-label', `${activeConfig.label} selected. Tap to cycle.`);
+        }
+    }
+
+    function setActiveHole(nextIndex, options = {}) {
+        if (!holeConfigurations.length) return;
+        const totalHoles = holeConfigurations.length;
+        const normalizedIndex = ((nextIndex % totalHoles) + totalHoles) % totalHoles;
+        const resetCamera = options.resetCamera !== false;
+        const nextConfig = holeConfigurations[normalizedIndex];
+        const nextSplat = ensureHoleSplat(normalizedIndex);
+
+        activeHoleIndex = normalizedIndex;
+        holeSplats.forEach((holeSplat, index) => {
+            if (!holeSplat) return;
+            holeSplat.visible = index === activeHoleIndex;
+        });
+        applyHoleSplatTransform(nextSplat, nextConfig);
+        applyHoleView(nextConfig, resetCamera);
+        applyHoleAnimation(nextConfig);
+        updateHoleCarouselLabel();
+    }
+
+    function cycleHole(direction) {
+        setActiveHole(activeHoleIndex + direction, { resetCamera: true });
+    }
+
+    controls.addEventListener('change', () => {
+        const activeConfig = getActiveHoleConfig();
+        const targetY = activeConfig && activeConfig.view && activeConfig.view.target
+            ? activeConfig.view.target.y
+            : parameters.scene.origin.y;
+        controls.target.y = targetY;
+        const minCameraY = targetY + parameters.camera.minHeightAboveTarget;
+        if (camera.position.y < minCameraY) {
+            camera.position.y += (minCameraY - camera.position.y) * 0.3;
+        }
     });
-    splat.material.depthTest = true;
-    splat.renderOrder = 999;
-    splat.position.copy(splatConfigs.splat1.position);
-    splat.rotation.x = MathUtils.degToRad(splatConfigs.splat1.rotation.x);
-    splat.rotation.y = MathUtils.degToRad(splatConfigs.splat1.rotation.y);
-    splat.rotation.z = MathUtils.degToRad(splatConfigs.splat1.rotation.z);
-    splat.scale.setScalar(splatConfigs.splat1.scale);
-    scene.add(splat);
-
-    // Create the second splat
-    let splat2 = new LumaSplatsThree({
-        source: splatConfigs.splat2.source,
-        particleRevealEnabled: true,
-        particleRevealDuration: 3.33
-    });
-    splat2.material.depthTest = true;
-    splat2.renderOrder = 999;
-    splat2.position.copy(splatConfigs.splat2.position);
-    splat2.rotation.x = MathUtils.degToRad(splatConfigs.splat2.rotation.x);
-    splat2.rotation.y = MathUtils.degToRad(splatConfigs.splat2.rotation.y);
-    splat2.rotation.z = MathUtils.degToRad(splatConfigs.splat2.rotation.z);
-    splat2.scale.setScalar(splatConfigs.splat2.scale);
-    scene.add(splat2);
-
-    const splats = {
-        splat1: splat,
-        splat2: splat2
-    };
 
     if (developerMode) {
-        splat.visible = true;
-        splat2.visible = true;
-        document.getElementById('developerControls').style.display = 'block';
-        document.getElementById('toggleSplat1').addEventListener('click', () => {
-            splat.visible = !splat.visible;
-        });
-        document.getElementById('toggleSplat2').addEventListener('click', () => {
-            splat2.visible = !splat2.visible;
-        });
-    } else {
-        splat.visible = true;
-        splat2.visible = false;
+        const developerControls = document.getElementById('developerControls');
+        const previousHoleButton = document.getElementById('toggleSplat1');
+        const nextHoleButton = document.getElementById('toggleSplat2');
+        if (developerControls) developerControls.style.display = 'block';
+        if (previousHoleButton) {
+            previousHoleButton.textContent = 'Previous Hole';
+            previousHoleButton.addEventListener('click', () => cycleHole(-1));
+        }
+        if (nextHoleButton) {
+            nextHoleButton.textContent = 'Next Hole';
+            nextHoleButton.addEventListener('click', () => cycleHole(1));
+        }
     }
 
     // TapDots Logic
@@ -1922,16 +2160,11 @@
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
-        parameters.scene.maxDistanceFromCenter = calculateMaxDistance();
+        controls.maxDistance = Math.max(controls.minDistance + 0.01, getConfiguredMaxDistance(getActiveHoleConfig()));
         hiddenCanvas.width = window.innerWidth;
         hiddenCanvas.height = window.innerHeight;
         updateMidpointButtons();
     });
-
-    let angle = parameters.animation.initialAngle !== undefined 
-        ? MathUtils.degToRad(parameters.animation.initialAngle) 
-        : 0;
-    let autoRotate = parameters.animation.autoRotate;
 
     // Enhanced compass logic with icon switching
     function getCompassRotation() {
@@ -2259,6 +2492,9 @@
     const fullscreenButton = document.getElementById('fullscreenButton');
     const compassButton = document.getElementById('compassButton');
     const compassIcon = document.getElementById('compassIcon');
+    const holePrevButton = document.getElementById('holePrevButton');
+    const holeNextButton = document.getElementById('holeNextButton');
+    const holeLabelButton = document.getElementById('holeLabelButton');
     const detailsBox = document.getElementById('detailsBox');
     const overlayUI = document.getElementById('overlay-ui');
     const detailsContent = document.getElementById('detailsContent');
@@ -2276,6 +2512,8 @@
     const lotCopyJsonButton = document.getElementById('lotCopyJsonButton');
     const lotMidpointLayer = document.getElementById('lotMidpointLayer');
     const tapDotGithubRawBase = 'https://raw.githubusercontent.com/HansenHomeAI/Red-Arrow-Ranch/main/3D%20Model%20Folders';
+
+    setActiveHole(0, { resetCamera: true });
 
     function resolveTapDotPhotoUrl(photoSrc) {
         if (!photoSrc) return '';
@@ -3223,6 +3461,24 @@
         animateCameraToNorth();
     });
 
+    if (holePrevButton) {
+        holePrevButton.addEventListener('click', () => {
+            cycleHole(-1);
+        });
+    }
+
+    if (holeNextButton) {
+        holeNextButton.addEventListener('click', () => {
+            cycleHole(1);
+        });
+    }
+
+    if (holeLabelButton) {
+        holeLabelButton.addEventListener('click', () => {
+            cycleHole(1);
+        });
+    }
+
     fullscreenButton.addEventListener('click', async () => {
         const img = fullscreenButton.querySelector('img');
         let newSrc;
@@ -3445,7 +3701,7 @@
     }
 
     // Handle hover circle for touch devices: add/remove 'active' on touchstart/touchend
-    document.querySelectorAll('.menu-button').forEach(btn => {
+    document.querySelectorAll('.menu-button, .hole-nav-button, .hole-label-button').forEach(btn => {
         btn.addEventListener('touchstart', () => {
             btn.classList.add('active');
         }, {passive: true});
