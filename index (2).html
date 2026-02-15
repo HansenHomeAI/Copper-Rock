@@ -983,6 +983,118 @@
             border-color: rgba(255, 255, 255, 0.38);
             background: rgba(191, 40, 27, 0.38);
         }
+        .animation-editor-toggle-wrap {
+            position: absolute;
+            left: 20px;
+            bottom: 88px;
+            z-index: 12;
+        }
+        .animation-editor-panel {
+            left: 20px;
+            right: auto;
+            bottom: 144px;
+            width: 312px;
+            max-width: min(312px, calc(100vw - 24px));
+        }
+        .animation-editor-panel .lot-editor-status {
+            min-height: 40px;
+            margin-bottom: 9px;
+        }
+        .animation-editor-row {
+            display: grid;
+            grid-template-columns: auto auto 1fr;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .animation-editor-checkbox {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.84);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .animation-editor-checkbox input {
+            accent-color: rgba(191, 40, 27, 0.9);
+            margin: 0;
+        }
+        .animation-editor-inline {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 6px;
+            min-width: 0;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.74);
+        }
+        .animation-editor-inline input {
+            width: 68px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9px;
+            background: rgba(0, 0, 0, 0.32);
+            color: #fff;
+            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            padding: 7px 7px;
+            box-sizing: border-box;
+            outline: none;
+            text-align: right;
+        }
+        .animation-editor-inline input:focus {
+            border-color: rgba(255, 255, 255, 0.42);
+        }
+        .animation-editor-checkpoint-nav {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .animation-editor-mini-btn {
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 9px;
+            background: rgba(0, 0, 0, 0.32);
+            color: #fff;
+            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            padding: 8px 10px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .animation-editor-mini-btn:hover {
+            border-color: rgba(255, 255, 255, 0.38);
+            background: rgba(191, 40, 27, 0.36);
+        }
+        .animation-editor-mini-btn:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .animation-editor-index {
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.88);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .animation-editor-subtitle {
+            margin: 9px 0 6px;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.66);
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+        }
+        .animation-editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .animation-editor-action-btn-wide {
+            width: 100%;
+        }
+        .animation-editor-danger:hover {
+            background: rgba(191, 40, 27, 0.52);
+        }
         .lot-midpoint-layer {
             position: absolute;
             inset: 0;
@@ -1011,6 +1123,15 @@
             background: rgba(191, 40, 27, 0.85);
         }
         @media (max-width: 720px) {
+            .animation-editor-toggle-wrap {
+                left: 12px;
+                bottom: 78px;
+            }
+            .animation-editor-panel {
+                left: 12px;
+                bottom: 132px;
+                width: min(300px, calc(100vw - 24px));
+            }
             .lot-editor-toggle-wrap {
                 right: 12px;
                 bottom: 12px;
@@ -1044,6 +1165,102 @@
         </div>
         <div id="compassButton" class="menu-button">
             <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
+        </div>
+    </div>
+
+    <div class="animation-editor-toggle-wrap" id="animationEditorToggleWrap">
+        <button id="animationEditorToggle" class="lot-editor-toggle" type="button" aria-pressed="false" aria-label="Toggle camera path editor">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M4 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
+                <path d="M20 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
+                <path d="M12 21a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
+                <path d="M6.2 14.2 17.7 9"></path>
+                <path d="M10.4 18.3 6.3 16"></path>
+            </svg>
+            <span>Camera Path</span>
+        </button>
+    </div>
+    <div id="animationEditorPanel" class="lot-editor-panel animation-editor-panel" aria-live="polite">
+        <div class="lot-editor-title">Camera Animation</div>
+        <div id="animationEditorStatus" class="lot-editor-status">Capture checkpoints, then press Play for a custom looping route.</div>
+        <div class="animation-editor-row">
+            <label class="animation-editor-checkbox">
+                <input id="animationPathEnabledInput" type="checkbox">
+                <span>Path On</span>
+            </label>
+            <label class="animation-editor-checkbox">
+                <input id="animationLoopInput" type="checkbox">
+                <span>Loop</span>
+            </label>
+            <label class="animation-editor-inline" for="animationSpeedInput">
+                <span>Speed</span>
+                <input id="animationSpeedInput" type="number" min="0.1" step="0.05">
+            </label>
+        </div>
+        <div class="animation-editor-checkpoint-nav">
+            <button id="animationPrevCheckpointButton" type="button" class="animation-editor-mini-btn">Prev</button>
+            <div id="animationCheckpointIndex" class="animation-editor-index">Checkpoint 0 / 0</div>
+            <button id="animationNextCheckpointButton" type="button" class="animation-editor-mini-btn">Next</button>
+        </div>
+        <div class="animation-editor-subtitle">Camera Position</div>
+        <div class="animation-editor-grid">
+            <div class="lot-editor-field">
+                <label for="animationCamXInput">Cam X</label>
+                <input id="animationCamXInput" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationCamYInput">Cam Y</label>
+                <input id="animationCamYInput" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationCamZInput">Cam Z</label>
+                <input id="animationCamZInput" type="number" step="0.001">
+            </div>
+        </div>
+        <div class="animation-editor-subtitle">Look Target</div>
+        <div class="animation-editor-grid">
+            <div class="lot-editor-field">
+                <label for="animationLookXInput">Look X</label>
+                <input id="animationLookXInput" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationLookYInput">Look Y</label>
+                <input id="animationLookYInput" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationLookZInput">Look Z</label>
+                <input id="animationLookZInput" type="number" step="0.001">
+            </div>
+        </div>
+        <div class="animation-editor-subtitle">Timing</div>
+        <div class="lot-editor-grid">
+            <div class="lot-editor-field">
+                <label for="animationDurationInput">Seconds To Next</label>
+                <input id="animationDurationInput" type="number" min="0.1" step="0.1">
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationCheckpointCountInput">Checkpoint Count</label>
+                <input id="animationCheckpointCountInput" type="text" readonly>
+            </div>
+            <div class="lot-editor-field">
+                <label for="animationApproxLoopInput">Loop Seconds</label>
+                <input id="animationApproxLoopInput" type="text" readonly>
+            </div>
+        </div>
+        <div class="lot-editor-actions">
+            <button id="animationCaptureCheckpointButton" type="button" class="lot-editor-action-btn">Capture New</button>
+            <button id="animationUpdateCheckpointButton" type="button" class="lot-editor-action-btn">Update View</button>
+        </div>
+        <div class="lot-editor-actions">
+            <button id="animationGoToCheckpointButton" type="button" class="lot-editor-action-btn">Go To</button>
+            <button id="animationDeleteCheckpointButton" type="button" class="lot-editor-action-btn animation-editor-danger">Delete</button>
+        </div>
+        <div class="lot-editor-actions">
+            <button id="animationPlayToggleButton" type="button" class="lot-editor-action-btn">Play</button>
+            <button id="animationStopButton" type="button" class="lot-editor-action-btn">Stop</button>
+        </div>
+        <div class="lot-editor-actions">
+            <button id="animationExportButton" type="button" class="lot-editor-action-btn animation-editor-action-btn-wide">Copy Animation JSON</button>
         </div>
     </div>
 
@@ -1173,7 +1390,22 @@
             startRadius: 3,
             speed: -0.003,
             initialAngle: 290,  // Start at 200 degrees
-            center: { x: 0, y: 0, z: 0 }   // ← new!
+            center: { x: 0, y: 0, z: 0 },  // Orbit fallback center
+            path: {
+                enabled: false,
+                loop: true,
+                speed: 1,
+                checkpoints: [
+                    { position: { x: 0, y: 0.4, z: 4.7 }, lookAt: { x: 0, y: -0.1, z: 0 }, duration: 6 },
+                    { position: { x: 2.35, y: 0.58, z: 2.15 }, lookAt: { x: 0.25, y: -0.1, z: 0.12 }, duration: 5.2 },
+                    { position: { x: 0.3, y: 0.52, z: -3.25 }, lookAt: { x: -0.1, y: -0.1, z: -0.22 }, duration: 5.6 },
+                    { position: { x: -2.65, y: 0.46, z: 1.75 }, lookAt: { x: -0.24, y: -0.1, z: 0.06 }, duration: 5.1 }
+                ]
+            },
+            editor: {
+                enabled: true,
+                defaultOpen: false
+            }
         },
         rebound: {
             speed: 0.2,
@@ -1378,7 +1610,10 @@
             return clamped + (current - clamped) * parameters.rebound.elasticity;
         };
         controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
-        controls.target.y = parameters.scene.origin.y; // Set target Y limit
+        const preserveLookTargetY = pathAnimationState.enabled;
+        if (!preserveLookTargetY) {
+            controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
+        }
         controls.target.z = clampRebound(controls.target.z, -parameters.scene.targetLimit.z, parameters.scene.targetLimit.z);
 
         // Restrict camera distance from the scene center
@@ -1934,10 +2169,218 @@
         updateMidpointButtons();
     });
 
-    let angle = parameters.animation.initialAngle !== undefined 
-        ? MathUtils.degToRad(parameters.animation.initialAngle) 
+    let angle = parameters.animation.initialAngle !== undefined
+        ? MathUtils.degToRad(parameters.animation.initialAngle)
         : 0;
     let autoRotate = parameters.animation.autoRotate;
+    const pathAnimationDefaults = parameters.animation.path || {};
+    const pathAnimationState = {
+        enabled: !!pathAnimationDefaults.enabled,
+        loop: pathAnimationDefaults.loop !== false,
+        speed: Number.isFinite(pathAnimationDefaults.speed) && pathAnimationDefaults.speed > 0 ? pathAnimationDefaults.speed : 1,
+        checkpoints: [],
+        playing: false,
+        segmentIndex: 0,
+        segmentElapsed: 0
+    };
+    const tempPathPosition = new Vector3();
+    const tempPathLookAt = new Vector3();
+    let lastAnimationFrameTime = performance.now();
+
+    function sanitizePathVector(raw, fallback) {
+        return {
+            x: Number.isFinite(raw?.x) ? raw.x : fallback.x,
+            y: Number.isFinite(raw?.y) ? raw.y : fallback.y,
+            z: Number.isFinite(raw?.z) ? raw.z : fallback.z
+        };
+    }
+
+    function buildCheckpointFromCurrentView(duration = 5) {
+        return {
+            position: {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            },
+            lookAt: {
+                x: controls.target.x,
+                y: controls.target.y,
+                z: controls.target.z
+            },
+            duration: Number.isFinite(duration) && duration > 0 ? duration : 5
+        };
+    }
+
+    function sanitizePathCheckpoint(rawCheckpoint) {
+        const baseCamera = parameters.camera.startPosition;
+        const baseLookAt = parameters.scene.origin;
+        const position = sanitizePathVector(rawCheckpoint?.position, baseCamera);
+        const lookAt = sanitizePathVector(rawCheckpoint?.lookAt, baseLookAt);
+        const duration = Number.isFinite(rawCheckpoint?.duration) && rawCheckpoint.duration > 0.1 ? rawCheckpoint.duration : 5;
+        return { position, lookAt, duration };
+    }
+
+    function getPathSegmentCount() {
+        const count = pathAnimationState.checkpoints.length;
+        if (count < 2) return 0;
+        return pathAnimationState.loop ? count : count - 1;
+    }
+
+    function getPathIndex(index) {
+        const count = pathAnimationState.checkpoints.length;
+        if (!count) return 0;
+        if (pathAnimationState.loop) {
+            return ((index % count) + count) % count;
+        }
+        return Math.min(Math.max(index, 0), count - 1);
+    }
+
+    function getPathCheckpoint(index) {
+        return pathAnimationState.checkpoints[getPathIndex(index)];
+    }
+
+    function getPathDurationForSegment(segmentIndex) {
+        const checkpoint = getPathCheckpoint(segmentIndex);
+        if (!checkpoint) return 5;
+        return Math.max(0.1, checkpoint.duration || 5);
+    }
+
+    function catmullRomScalar(p0, p1, p2, p3, t) {
+        const t2 = t * t;
+        const t3 = t2 * t;
+        return 0.5 * (
+            (2 * p1) +
+            (-p0 + p2) * t +
+            (2 * p0 - 5 * p1 + 4 * p2 - p3) * t2 +
+            (-p0 + 3 * p1 - 3 * p2 + p3) * t3
+        );
+    }
+
+    function catmullRomVector(v0, v1, v2, v3, t, out) {
+        out.set(
+            catmullRomScalar(v0.x, v1.x, v2.x, v3.x, t),
+            catmullRomScalar(v0.y, v1.y, v2.y, v3.y, t),
+            catmullRomScalar(v0.z, v1.z, v2.z, v3.z, t)
+        );
+        return out;
+    }
+
+    function applyPathCheckpoint(index) {
+        const checkpoint = getPathCheckpoint(index);
+        if (!checkpoint) return;
+        camera.position.set(checkpoint.position.x, checkpoint.position.y, checkpoint.position.z);
+        controls.target.set(checkpoint.lookAt.x, checkpoint.lookAt.y, checkpoint.lookAt.z);
+        camera.lookAt(controls.target);
+        controls.update();
+    }
+
+    function applyPathPose(segmentIndex, progress) {
+        const checkpointCount = pathAnimationState.checkpoints.length;
+        const segmentCount = getPathSegmentCount();
+        if (!segmentCount || checkpointCount < 2) return;
+        const clampedProgress = Math.min(Math.max(progress, 0), 1);
+        const i1 = pathAnimationState.loop
+            ? getPathIndex(segmentIndex)
+            : Math.min(Math.max(segmentIndex, 0), checkpointCount - 2);
+        const i2 = pathAnimationState.loop ? getPathIndex(i1 + 1) : Math.min(i1 + 1, checkpointCount - 1);
+        const p0 = getPathCheckpoint(i1 - 1).position;
+        const p1 = getPathCheckpoint(i1).position;
+        const p2 = getPathCheckpoint(i2).position;
+        const p3 = getPathCheckpoint(i2 + 1).position;
+        const l0 = getPathCheckpoint(i1 - 1).lookAt;
+        const l1 = getPathCheckpoint(i1).lookAt;
+        const l2 = getPathCheckpoint(i2).lookAt;
+        const l3 = getPathCheckpoint(i2 + 1).lookAt;
+        catmullRomVector(p0, p1, p2, p3, clampedProgress, tempPathPosition);
+        catmullRomVector(l0, l1, l2, l3, clampedProgress, tempPathLookAt);
+        camera.position.copy(tempPathPosition);
+        controls.target.copy(tempPathLookAt);
+        camera.lookAt(controls.target);
+    }
+
+    function updatePathAnimation(deltaSeconds) {
+        if (!pathAnimationState.enabled || !pathAnimationState.playing) return;
+        const segmentCount = getPathSegmentCount();
+        if (!segmentCount) {
+            pathAnimationState.playing = false;
+            if (typeof syncAnimationEditorFromState === 'function') syncAnimationEditorFromState();
+            return;
+        }
+        let endedPlayback = false;
+        let remaining = Math.max(0, deltaSeconds * pathAnimationState.speed);
+        while (remaining > 0 && pathAnimationState.playing) {
+            const duration = getPathDurationForSegment(pathAnimationState.segmentIndex);
+            const segmentRemaining = Math.max(0, duration - pathAnimationState.segmentElapsed);
+            if (remaining < segmentRemaining) {
+                pathAnimationState.segmentElapsed += remaining;
+                remaining = 0;
+                break;
+            }
+            remaining -= segmentRemaining;
+            if (pathAnimationState.loop) {
+                pathAnimationState.segmentIndex = (pathAnimationState.segmentIndex + 1) % segmentCount;
+                pathAnimationState.segmentElapsed = 0;
+                continue;
+            }
+            const lastSegment = segmentCount - 1;
+            if (pathAnimationState.segmentIndex >= lastSegment) {
+                pathAnimationState.segmentElapsed = getPathDurationForSegment(pathAnimationState.segmentIndex);
+                pathAnimationState.playing = false;
+                endedPlayback = true;
+                remaining = 0;
+                break;
+            }
+            pathAnimationState.segmentIndex += 1;
+            pathAnimationState.segmentElapsed = 0;
+        }
+        const duration = getPathDurationForSegment(pathAnimationState.segmentIndex);
+        const progress = duration > 0 ? Math.min(pathAnimationState.segmentElapsed / duration, 1) : 1;
+        applyPathPose(pathAnimationState.segmentIndex, progress);
+        if (endedPlayback && typeof syncAnimationEditorFromState === 'function') {
+            setAnimationEditorStatus('Path reached the end. Enable Loop or press Play to restart.');
+            syncAnimationEditorFromState();
+        }
+    }
+
+    function getSerializedCameraPathPayload() {
+        const checkpoints = pathAnimationState.checkpoints.map((checkpoint) => ({
+            position: {
+                x: +checkpoint.position.x.toFixed(6),
+                y: +checkpoint.position.y.toFixed(6),
+                z: +checkpoint.position.z.toFixed(6)
+            },
+            lookAt: {
+                x: +checkpoint.lookAt.x.toFixed(6),
+                y: +checkpoint.lookAt.y.toFixed(6),
+                z: +checkpoint.lookAt.z.toFixed(6)
+            },
+            duration: +Math.max(0.1, checkpoint.duration || 5).toFixed(3)
+        }));
+        return {
+            enabled: !!pathAnimationState.enabled,
+            loop: !!pathAnimationState.loop,
+            speed: +Math.max(0.1, pathAnimationState.speed || 1).toFixed(3),
+            checkpoints
+        };
+    }
+
+    function syncSerializedPathToParameters() {
+        parameters.animation.path = getSerializedCameraPathPayload();
+    }
+
+    const configuredPathCheckpoints = Array.isArray(pathAnimationDefaults.checkpoints) ? pathAnimationDefaults.checkpoints : [];
+    pathAnimationState.checkpoints = configuredPathCheckpoints.map(sanitizePathCheckpoint);
+    if (!pathAnimationState.checkpoints.length) {
+        pathAnimationState.checkpoints.push(buildCheckpointFromCurrentView(5));
+    }
+    if (pathAnimationState.enabled) {
+        applyPathCheckpoint(0);
+        if (pathAnimationState.checkpoints.length > 1) {
+            pathAnimationState.playing = true;
+            autoRotate = false;
+        }
+    }
+    syncSerializedPathToParameters();
 
     // Enhanced compass logic with icon switching
     function getCompassRotation() {
@@ -2029,6 +2472,13 @@
         isAnimatingToNorth = true;
         animationStartTime = performance.now();
         autoRotate = false; // Disable auto-rotation during animation
+        pathAnimationState.playing = false;
+        if (typeof syncAnimationEditorFromState === 'function') {
+            syncAnimationEditorFromState();
+        }
+        if (typeof setAnimationEditorStatus === 'function') {
+            setAnimationEditorStatus('Paused path playback while rotating north.');
+        }
         
     }
 
@@ -2057,17 +2507,21 @@
         }
     }
 
-    function animate() {
-        if (autoRotate) {
-        angle += parameters.animation.speed;
-        const c = parameters.animation.center;
-
-        camera.position.x = c.x + Math.sin(angle) * parameters.animation.startRadius;
-        camera.position.z = c.z + Math.cos(angle) * parameters.animation.startRadius;
-        camera.position.y = c.y + parameters.camera.startPosition.y;
-
-        camera.lookAt(controls.target);
-    }
+    function animate(now = performance.now()) {
+        const deltaSeconds = Math.min(Math.max((now - lastAnimationFrameTime) / 1000, 0), 0.1);
+        lastAnimationFrameTime = now;
+        if (!isAnimatingToNorth) {
+            if (pathAnimationState.enabled && pathAnimationState.playing) {
+                updatePathAnimation(deltaSeconds);
+            } else if (autoRotate) {
+                angle += parameters.animation.speed;
+                const c = parameters.animation.center;
+                camera.position.x = c.x + Math.sin(angle) * parameters.animation.startRadius;
+                camera.position.z = c.z + Math.cos(angle) * parameters.animation.startRadius;
+                camera.position.y = c.y + parameters.camera.startPosition.y;
+                camera.lookAt(controls.target);
+            }
+        }
 
         // Make "Sold" hotspot text always face the camera
         soldHotspots.forEach(sold => {
@@ -2170,8 +2624,21 @@
         requestAnimationFrame(animate);
     }
 
-    controls.addEventListener('start', () => autoRotate = false);
-    window.addEventListener('touchstart', () => autoRotate = false);
+    function pauseCameraAutomationFromInteraction() {
+        autoRotate = false;
+        if (pathAnimationState.playing) {
+            pathAnimationState.playing = false;
+            if (typeof syncAnimationEditorFromState === 'function') {
+                syncAnimationEditorFromState();
+            }
+            if (typeof setAnimationEditorStatus === 'function') {
+                setAnimationEditorStatus('Paused camera path while manually navigating.');
+            }
+        }
+    }
+
+    controls.addEventListener('start', pauseCameraAutomationFromInteraction);
+    window.addEventListener('touchstart', pauseCameraAutomationFromInteraction);
 
     let lastPointerDownForTapDot = { x: 0, y: 0 };
     let suppressTapDotClickUntil = 0;
@@ -2188,7 +2655,7 @@
         if (lotEditState.active) return;
         if (window.isTapdotPopupOpen || isDetailsOpen) return;
         const eventTarget = event.target;
-        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus')) return;
+        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus, .animation-editor-toggle-wrap, .animation-editor-panel')) return;
         const dx = event.clientX - lastPointerDownForTapDot.x;
         const dy = event.clientY - lastPointerDownForTapDot.y;
         if (Math.sqrt(dx * dx + dy * dy) > tapDotClickMoveThreshold) return;
@@ -2281,6 +2748,32 @@
     const lotVertexZInput = document.getElementById('lotVertexZInput');
     const lotCopyJsonButton = document.getElementById('lotCopyJsonButton');
     const lotMidpointLayer = document.getElementById('lotMidpointLayer');
+    const animationEditorToggleWrap = document.getElementById('animationEditorToggleWrap');
+    const animationEditorToggle = document.getElementById('animationEditorToggle');
+    const animationEditorPanel = document.getElementById('animationEditorPanel');
+    const animationEditorStatus = document.getElementById('animationEditorStatus');
+    const animationPathEnabledInput = document.getElementById('animationPathEnabledInput');
+    const animationLoopInput = document.getElementById('animationLoopInput');
+    const animationSpeedInput = document.getElementById('animationSpeedInput');
+    const animationPrevCheckpointButton = document.getElementById('animationPrevCheckpointButton');
+    const animationNextCheckpointButton = document.getElementById('animationNextCheckpointButton');
+    const animationCheckpointIndex = document.getElementById('animationCheckpointIndex');
+    const animationCamXInput = document.getElementById('animationCamXInput');
+    const animationCamYInput = document.getElementById('animationCamYInput');
+    const animationCamZInput = document.getElementById('animationCamZInput');
+    const animationLookXInput = document.getElementById('animationLookXInput');
+    const animationLookYInput = document.getElementById('animationLookYInput');
+    const animationLookZInput = document.getElementById('animationLookZInput');
+    const animationDurationInput = document.getElementById('animationDurationInput');
+    const animationCheckpointCountInput = document.getElementById('animationCheckpointCountInput');
+    const animationApproxLoopInput = document.getElementById('animationApproxLoopInput');
+    const animationCaptureCheckpointButton = document.getElementById('animationCaptureCheckpointButton');
+    const animationUpdateCheckpointButton = document.getElementById('animationUpdateCheckpointButton');
+    const animationGoToCheckpointButton = document.getElementById('animationGoToCheckpointButton');
+    const animationDeleteCheckpointButton = document.getElementById('animationDeleteCheckpointButton');
+    const animationPlayToggleButton = document.getElementById('animationPlayToggleButton');
+    const animationStopButton = document.getElementById('animationStopButton');
+    const animationExportButton = document.getElementById('animationExportButton');
     const tapDotGithubRawBase = 'https://raw.githubusercontent.com/HansenHomeAI/Red-Arrow-Ranch/main/3D%20Model%20Folders';
 
     function resolveTapDotPhotoUrl(photoSrc) {
@@ -2313,6 +2806,359 @@
     let startCameraPosition = new Vector3();
     let targetCameraPosition = new Vector3();
     const animationDuration = 1500; // 1.5 seconds
+    const animationEditorState = {
+        enabled: !!(parameters.animation.editor && parameters.animation.editor.enabled),
+        open: false,
+        selectedCheckpointIndex: 0,
+        lastExportJson: ''
+    };
+
+    function setAnimationEditorStatus(message) {
+        if (animationEditorStatus) {
+            animationEditorStatus.textContent = message;
+        }
+    }
+
+    function getSelectedPathCheckpoint() {
+        const index = animationEditorState.selectedCheckpointIndex;
+        return pathAnimationState.checkpoints[index] || null;
+    }
+
+    function getTotalPathSeconds() {
+        const checkpoints = pathAnimationState.checkpoints;
+        const count = checkpoints.length;
+        if (!count) return 0;
+        if (count === 1) return Math.max(0.1, checkpoints[0].duration || 5);
+        const finalIndex = pathAnimationState.loop ? count : count - 1;
+        let total = 0;
+        for (let i = 0; i < finalIndex; i++) {
+            total += Math.max(0.1, checkpoints[i].duration || 5);
+        }
+        return total;
+    }
+
+    function setAnimationEditorInputsEnabled(enabled) {
+        [
+            animationCamXInput,
+            animationCamYInput,
+            animationCamZInput,
+            animationLookXInput,
+            animationLookYInput,
+            animationLookZInput,
+            animationDurationInput,
+            animationGoToCheckpointButton,
+            animationDeleteCheckpointButton,
+            animationUpdateCheckpointButton
+        ].forEach((element) => {
+            if (!element) return;
+            element.disabled = !enabled;
+        });
+    }
+
+    function syncSelectedCheckpointIndex() {
+        const count = pathAnimationState.checkpoints.length;
+        if (!count) {
+            animationEditorState.selectedCheckpointIndex = 0;
+            return;
+        }
+        animationEditorState.selectedCheckpointIndex = Math.min(
+            Math.max(animationEditorState.selectedCheckpointIndex, 0),
+            count - 1
+        );
+    }
+
+    function updateSelectedCheckpointInputs() {
+        const selected = getSelectedPathCheckpoint();
+        if (!selected) {
+            [animationCamXInput, animationCamYInput, animationCamZInput, animationLookXInput, animationLookYInput, animationLookZInput, animationDurationInput].forEach((input) => {
+                if (input) input.value = '';
+            });
+            setAnimationEditorInputsEnabled(false);
+            return;
+        }
+        setAnimationEditorInputsEnabled(true);
+        animationCamXInput.value = selected.position.x.toFixed(6);
+        animationCamYInput.value = selected.position.y.toFixed(6);
+        animationCamZInput.value = selected.position.z.toFixed(6);
+        animationLookXInput.value = selected.lookAt.x.toFixed(6);
+        animationLookYInput.value = selected.lookAt.y.toFixed(6);
+        animationLookZInput.value = selected.lookAt.z.toFixed(6);
+        animationDurationInput.value = Math.max(0.1, selected.duration || 5).toFixed(3);
+    }
+
+    function syncAnimationEditorFromState() {
+        if (!animationEditorState.enabled || !animationEditorPanel) return;
+        syncSelectedCheckpointIndex();
+        const checkpointCount = pathAnimationState.checkpoints.length;
+        if (animationPathEnabledInput) animationPathEnabledInput.checked = !!pathAnimationState.enabled;
+        if (animationLoopInput) animationLoopInput.checked = !!pathAnimationState.loop;
+        if (animationSpeedInput) animationSpeedInput.value = Math.max(0.1, pathAnimationState.speed || 1).toFixed(2);
+        if (animationCheckpointIndex) {
+            animationCheckpointIndex.textContent = checkpointCount
+                ? `Checkpoint ${animationEditorState.selectedCheckpointIndex + 1} / ${checkpointCount}`
+                : 'Checkpoint 0 / 0';
+        }
+        if (animationCheckpointCountInput) {
+            animationCheckpointCountInput.value = `${checkpointCount}`;
+        }
+        if (animationApproxLoopInput) {
+            animationApproxLoopInput.value = `${getTotalPathSeconds().toFixed(2)}s`;
+        }
+        if (animationPrevCheckpointButton) animationPrevCheckpointButton.disabled = checkpointCount <= 1;
+        if (animationNextCheckpointButton) animationNextCheckpointButton.disabled = checkpointCount <= 1;
+        if (animationCaptureCheckpointButton) animationCaptureCheckpointButton.disabled = false;
+        if (animationPlayToggleButton) {
+            animationPlayToggleButton.textContent = pathAnimationState.playing ? 'Pause' : 'Play';
+        }
+        if (animationStopButton) {
+            animationStopButton.disabled = !pathAnimationState.playing;
+        }
+        updateSelectedCheckpointInputs();
+        syncSerializedPathToParameters();
+        window.__cameraAnimationPath = getSerializedCameraPathPayload();
+    }
+
+    function setAnimationEditorOpen(enabled) {
+        if (!animationEditorState.enabled || !animationEditorPanel || !animationEditorToggle) return;
+        animationEditorState.open = !!enabled;
+        animationEditorPanel.classList.toggle('active', animationEditorState.open);
+        animationEditorToggle.classList.toggle('active', animationEditorState.open);
+        animationEditorToggle.setAttribute('aria-pressed', animationEditorState.open ? 'true' : 'false');
+    }
+
+    function setPathAnimationEnabled(enabled) {
+        pathAnimationState.enabled = !!enabled;
+        if (!pathAnimationState.enabled) {
+            pathAnimationState.playing = false;
+            autoRotate = !!parameters.animation.autoRotate;
+            setAnimationEditorStatus('Path disabled. Camera is now manual/orbit controlled.');
+        } else if (pathAnimationState.checkpoints.length > 1) {
+            autoRotate = false;
+            setAnimationEditorStatus('Path enabled. Press Play to preview.');
+        } else {
+            pathAnimationState.playing = false;
+            setAnimationEditorStatus('Path enabled. Add at least one more checkpoint to play.');
+        }
+        syncAnimationEditorFromState();
+    }
+
+    function setPathLoopEnabled(enabled) {
+        pathAnimationState.loop = !!enabled;
+        const segmentCount = getPathSegmentCount();
+        if (segmentCount && pathAnimationState.segmentIndex >= segmentCount) {
+            pathAnimationState.segmentIndex = Math.max(0, segmentCount - 1);
+            pathAnimationState.segmentElapsed = 0;
+        }
+        syncAnimationEditorFromState();
+    }
+
+    function setPathSpeed(value) {
+        if (!Number.isFinite(value)) return;
+        pathAnimationState.speed = Math.min(Math.max(value, 0.1), 10);
+        syncAnimationEditorFromState();
+    }
+
+    function captureCheckpointFromCurrentView() {
+        pathAnimationState.playing = false;
+        const selected = getSelectedPathCheckpoint();
+        const nextDuration = selected ? Math.max(0.1, selected.duration || 5) : 5;
+        const checkpoint = buildCheckpointFromCurrentView(nextDuration);
+        const insertIndex = pathAnimationState.checkpoints.length
+            ? animationEditorState.selectedCheckpointIndex + 1
+            : 0;
+        pathAnimationState.checkpoints.splice(insertIndex, 0, checkpoint);
+        animationEditorState.selectedCheckpointIndex = insertIndex;
+        setAnimationEditorStatus(`Captured checkpoint ${insertIndex + 1}.`);
+        syncAnimationEditorFromState();
+    }
+
+    function updateSelectedCheckpointFromCurrentView() {
+        const selected = getSelectedPathCheckpoint();
+        if (!selected) return;
+        pathAnimationState.playing = false;
+        const duration = selected.duration;
+        const snapshot = buildCheckpointFromCurrentView(duration);
+        selected.position = snapshot.position;
+        selected.lookAt = snapshot.lookAt;
+        selected.duration = duration;
+        setAnimationEditorStatus(`Updated checkpoint ${animationEditorState.selectedCheckpointIndex + 1} from current view.`);
+        syncAnimationEditorFromState();
+    }
+
+    function deleteSelectedCheckpoint() {
+        if (!pathAnimationState.checkpoints.length) return;
+        pathAnimationState.playing = false;
+        const removedIndex = animationEditorState.selectedCheckpointIndex;
+        pathAnimationState.checkpoints.splice(removedIndex, 1);
+        if (!pathAnimationState.checkpoints.length) {
+            pathAnimationState.checkpoints.push(buildCheckpointFromCurrentView(5));
+        }
+        if (animationEditorState.selectedCheckpointIndex >= pathAnimationState.checkpoints.length) {
+            animationEditorState.selectedCheckpointIndex = pathAnimationState.checkpoints.length - 1;
+        }
+        pathAnimationState.segmentIndex = 0;
+        pathAnimationState.segmentElapsed = 0;
+        if (pathAnimationState.checkpoints.length < 2) {
+            pathAnimationState.playing = false;
+        }
+        setAnimationEditorStatus(`Deleted checkpoint ${removedIndex + 1}.`);
+        syncAnimationEditorFromState();
+    }
+
+    function goToSelectedCheckpoint() {
+        if (!pathAnimationState.checkpoints.length) return;
+        pathAnimationState.playing = false;
+        pathAnimationState.segmentElapsed = 0;
+        pathAnimationState.segmentIndex = animationEditorState.selectedCheckpointIndex;
+        applyPathCheckpoint(animationEditorState.selectedCheckpointIndex);
+        setAnimationEditorStatus(`Moved camera to checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
+        syncAnimationEditorFromState();
+    }
+
+    function updateSelectedCheckpointVector(group, axis, value) {
+        if (!Number.isFinite(value)) return;
+        const selected = getSelectedPathCheckpoint();
+        if (!selected) return;
+        pathAnimationState.playing = false;
+        if (group === 'position') {
+            selected.position[axis] = value;
+            if (!pathAnimationState.playing) {
+                camera.position[axis] = value;
+                camera.lookAt(controls.target);
+            }
+        } else if (group === 'lookAt') {
+            selected.lookAt[axis] = value;
+            if (!pathAnimationState.playing) {
+                controls.target[axis] = value;
+                camera.lookAt(controls.target);
+            }
+        }
+        controls.update();
+        syncAnimationEditorFromState();
+    }
+
+    function updateSelectedCheckpointDuration(value) {
+        if (!Number.isFinite(value)) return;
+        const selected = getSelectedPathCheckpoint();
+        if (!selected) return;
+        pathAnimationState.playing = false;
+        selected.duration = Math.min(Math.max(value, 0.1), 120);
+        syncAnimationEditorFromState();
+    }
+
+    function togglePathPlayback() {
+        if (!pathAnimationState.enabled) {
+            setPathAnimationEnabled(true);
+        }
+        if (pathAnimationState.checkpoints.length < 2) {
+            pathAnimationState.playing = false;
+            setAnimationEditorStatus('Add at least 2 checkpoints to play the path.');
+            syncAnimationEditorFromState();
+            return;
+        }
+        if (pathAnimationState.playing) {
+            pathAnimationState.playing = false;
+            setAnimationEditorStatus('Path playback paused.');
+            syncAnimationEditorFromState();
+            return;
+        }
+        const segmentCount = getPathSegmentCount();
+        if (!segmentCount) {
+            setAnimationEditorStatus('Unable to play path. Add checkpoints first.');
+            syncAnimationEditorFromState();
+            return;
+        }
+        autoRotate = false;
+        isAnimatingToNorth = false;
+        if (!pathAnimationState.loop && animationEditorState.selectedCheckpointIndex >= pathAnimationState.checkpoints.length - 1) {
+            animationEditorState.selectedCheckpointIndex = 0;
+        }
+        pathAnimationState.segmentIndex = pathAnimationState.loop
+            ? getPathIndex(animationEditorState.selectedCheckpointIndex)
+            : Math.min(animationEditorState.selectedCheckpointIndex, pathAnimationState.checkpoints.length - 2);
+        pathAnimationState.segmentElapsed = 0;
+        pathAnimationState.playing = true;
+        applyPathPose(pathAnimationState.segmentIndex, 0);
+        setAnimationEditorStatus('Playing camera path.');
+        syncAnimationEditorFromState();
+    }
+
+    function stopPathPlayback() {
+        pathAnimationState.playing = false;
+        pathAnimationState.segmentElapsed = 0;
+        goToSelectedCheckpoint();
+        setAnimationEditorStatus('Path playback stopped.');
+        syncAnimationEditorFromState();
+    }
+
+    function buildCameraPathExportSnippet() {
+        const payload = getSerializedCameraPathPayload();
+        const jsonText = JSON.stringify(payload, null, 2);
+        return {
+            payload,
+            jsonText,
+            snippet: `path: ${jsonText}`
+        };
+    }
+
+    async function exportCameraPathToClipboard() {
+        const { payload, snippet } = buildCameraPathExportSnippet();
+        animationEditorState.lastExportJson = snippet;
+        window.__cameraAnimationExport = snippet;
+        try {
+            const copied = await copyTextToClipboard(snippet);
+            if (copied) {
+                setAnimationEditorStatus(`Copied ${payload.checkpoints.length} checkpoints (${getTotalPathSeconds().toFixed(2)}s total).`);
+                return;
+            }
+        } catch (error) {
+            // Fall through to prompt fallback.
+        }
+        try {
+            window.prompt('Copy camera path config', snippet);
+            setAnimationEditorStatus(`Path JSON ready (${payload.checkpoints.length} checkpoints).`);
+        } catch (error) {
+            setAnimationEditorStatus('Unable to copy camera path JSON automatically.');
+        }
+    }
+
+    function initializeAnimationEditor() {
+        if (!animationEditorState.enabled) {
+            if (animationEditorToggleWrap) animationEditorToggleWrap.style.display = 'none';
+            if (animationEditorPanel) animationEditorPanel.style.display = 'none';
+            return;
+        }
+        if (!animationEditorPanel || !animationEditorToggle) return;
+        setAnimationEditorOpen(!!(parameters.animation.editor && parameters.animation.editor.defaultOpen));
+        setAnimationEditorStatus('Capture checkpoints, then press Play for a custom looping route.');
+        syncAnimationEditorFromState();
+        window.__syncAnimationEditorUI = syncAnimationEditorFromState;
+        window.__cameraPathDebug = {
+            getState: () => ({
+                enabled: pathAnimationState.enabled,
+                loop: pathAnimationState.loop,
+                speed: pathAnimationState.speed,
+                playing: pathAnimationState.playing,
+                selectedCheckpointIndex: animationEditorState.selectedCheckpointIndex,
+                checkpointCount: pathAnimationState.checkpoints.length,
+                segmentIndex: pathAnimationState.segmentIndex,
+                segmentElapsed: pathAnimationState.segmentElapsed
+            }),
+            getCamera: () => ({
+                position: {
+                    x: camera.position.x,
+                    y: camera.position.y,
+                    z: camera.position.z
+                },
+                target: {
+                    x: controls.target.x,
+                    y: controls.target.y,
+                    z: controls.target.z
+                }
+            }),
+            getSerializedPath: () => getSerializedCameraPathPayload()
+        };
+    }
 
     function setLotEditorStatus(message) {
         if (lotEditorStatus) lotEditorStatus.textContent = message;
@@ -2920,10 +3766,17 @@
                 up: camera.up.clone(),
                 controlsEnabled: controls.enabled,
                 controlsRotateEnabled: controls.enableRotate,
-                autoRotate
+                autoRotate,
+                pathEnabled: pathAnimationState.enabled,
+                pathPlaying: pathAnimationState.playing,
+                pathLoop: pathAnimationState.loop,
+                pathSpeed: pathAnimationState.speed,
+                pathSegmentIndex: pathAnimationState.segmentIndex,
+                pathSegmentElapsed: pathAnimationState.segmentElapsed
             };
             autoRotate = false;
             isAnimatingToNorth = false;
+            pathAnimationState.playing = false;
             if (lotEditState.selectedTapDot) {
                 syncLotEditorInputsFromSelection();
             } else if (!lotEditState.selectedVertexName || !borderDots[lotEditState.selectedVertexName]) {
@@ -2947,6 +3800,12 @@
             controls.enabled = snapshot.controlsEnabled;
             controls.enableRotate = snapshot.controlsRotateEnabled;
             autoRotate = snapshot.autoRotate;
+            pathAnimationState.enabled = snapshot.pathEnabled ?? pathAnimationState.enabled;
+            pathAnimationState.playing = snapshot.pathPlaying ?? false;
+            pathAnimationState.loop = snapshot.pathLoop ?? pathAnimationState.loop;
+            pathAnimationState.speed = Number.isFinite(snapshot.pathSpeed) ? snapshot.pathSpeed : pathAnimationState.speed;
+            pathAnimationState.segmentIndex = Number.isFinite(snapshot.pathSegmentIndex) ? snapshot.pathSegmentIndex : 0;
+            pathAnimationState.segmentElapsed = Number.isFinite(snapshot.pathSegmentElapsed) ? snapshot.pathSegmentElapsed : 0;
             controls.update();
         } else {
             controls.enableRotate = true;
@@ -2954,6 +3813,7 @@
         }
         setLotEditorStatus('Enable mode, then drag vertices or tap dots to adjust positions.');
         refreshBorderVisualState();
+        syncAnimationEditorFromState();
     }
 
     function updateSelectedCoordinate(axis, value) {
@@ -3070,7 +3930,79 @@
             setLotEditorStatus('Unable to copy automatically. Clipboard blocked.');
         }
     });
+
+    function shiftSelectedAnimationCheckpoint(delta) {
+        const count = pathAnimationState.checkpoints.length;
+        if (!count) return;
+        animationEditorState.selectedCheckpointIndex = ((animationEditorState.selectedCheckpointIndex + delta) % count + count) % count;
+        syncAnimationEditorFromState();
+    }
+
+    if (animationEditorToggle) {
+        animationEditorToggle.addEventListener('click', () => {
+            setAnimationEditorOpen(!animationEditorState.open);
+        });
+    }
+    if (animationPathEnabledInput) {
+        animationPathEnabledInput.addEventListener('change', () => setPathAnimationEnabled(animationPathEnabledInput.checked));
+    }
+    if (animationLoopInput) {
+        animationLoopInput.addEventListener('change', () => setPathLoopEnabled(animationLoopInput.checked));
+    }
+    if (animationSpeedInput) {
+        animationSpeedInput.addEventListener('input', () => setPathSpeed(parseFloat(animationSpeedInput.value)));
+    }
+    if (animationPrevCheckpointButton) {
+        animationPrevCheckpointButton.addEventListener('click', () => shiftSelectedAnimationCheckpoint(-1));
+    }
+    if (animationNextCheckpointButton) {
+        animationNextCheckpointButton.addEventListener('click', () => shiftSelectedAnimationCheckpoint(1));
+    }
+    if (animationCaptureCheckpointButton) {
+        animationCaptureCheckpointButton.addEventListener('click', captureCheckpointFromCurrentView);
+    }
+    if (animationUpdateCheckpointButton) {
+        animationUpdateCheckpointButton.addEventListener('click', updateSelectedCheckpointFromCurrentView);
+    }
+    if (animationDeleteCheckpointButton) {
+        animationDeleteCheckpointButton.addEventListener('click', deleteSelectedCheckpoint);
+    }
+    if (animationGoToCheckpointButton) {
+        animationGoToCheckpointButton.addEventListener('click', goToSelectedCheckpoint);
+    }
+    if (animationPlayToggleButton) {
+        animationPlayToggleButton.addEventListener('click', togglePathPlayback);
+    }
+    if (animationStopButton) {
+        animationStopButton.addEventListener('click', stopPathPlayback);
+    }
+    if (animationExportButton) {
+        animationExportButton.addEventListener('click', exportCameraPathToClipboard);
+    }
+    if (animationCamXInput) {
+        animationCamXInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'x', parseFloat(animationCamXInput.value)));
+    }
+    if (animationCamYInput) {
+        animationCamYInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'y', parseFloat(animationCamYInput.value)));
+    }
+    if (animationCamZInput) {
+        animationCamZInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'z', parseFloat(animationCamZInput.value)));
+    }
+    if (animationLookXInput) {
+        animationLookXInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'x', parseFloat(animationLookXInput.value)));
+    }
+    if (animationLookYInput) {
+        animationLookYInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'y', parseFloat(animationLookYInput.value)));
+    }
+    if (animationLookZInput) {
+        animationLookZInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'z', parseFloat(animationLookZInput.value)));
+    }
+    if (animationDurationInput) {
+        animationDurationInput.addEventListener('input', () => updateSelectedCheckpointDuration(parseFloat(animationDurationInput.value)));
+    }
+
     syncLotEditorInputsFromSelection();
+    initializeAnimationEditor();
 
     // Original base spacing and sizes:
     const baseMenuLeft = 20;
