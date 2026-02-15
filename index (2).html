@@ -1099,115 +1099,114 @@
         }
         .animation-editor-toggle-wrap {
             position: absolute;
-            left: 20px;
-            bottom: 88px;
+            top: 12px;
+            right: 12px;
             z-index: 12;
         }
         .animation-editor-panel {
-            left: 20px;
-            right: auto;
-            bottom: 144px;
+            left: auto;
+            right: 12px;
+            top: 66px;
+            bottom: auto;
             width: 312px;
             max-width: min(312px, calc(100vw - 24px));
         }
-        .animation-editor-panel .lot-editor-status {
-            min-height: 40px;
-            margin-bottom: 9px;
-        }
-        .animation-editor-row {
-            display: grid;
-            grid-template-columns: auto auto 1fr;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
-        }
-        .animation-editor-checkbox {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.84);
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .animation-editor-checkbox input {
-            accent-color: rgba(191, 40, 27, 0.9);
-            margin: 0;
-        }
-        .animation-editor-inline {
+        .animation-editor-header {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            gap: 6px;
-            min-width: 0;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.74);
-        }
-        .animation-editor-inline input {
-            width: 68px;
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 9px;
-            background: rgba(0, 0, 0, 0.32);
-            color: #fff;
-            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
-            padding: 7px 7px;
-            box-sizing: border-box;
-            outline: none;
-            text-align: right;
-        }
-        .animation-editor-inline input:focus {
-            border-color: rgba(255, 255, 255, 0.42);
-        }
-        .animation-editor-checkpoint-nav {
-            display: grid;
-            grid-template-columns: auto 1fr auto;
+            justify-content: space-between;
             gap: 8px;
-            align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 4px;
         }
-        .animation-editor-mini-btn {
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 9px;
-            background: rgba(0, 0, 0, 0.32);
-            color: #fff;
-            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
-            padding: 8px 10px;
+        .animation-editor-header .lot-editor-title {
+            margin-bottom: 0;
+        }
+        .animation-editor-close {
+            width: 28px;
+            min-width: 28px;
+            height: 28px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 14px;
+            background: rgba(0, 0, 0, 0.3);
+            color: rgba(255, 255, 255, 0.9);
+            font: 500 17px/1 'Helvetica Neue', Arial, sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            padding: 0;
             transition: border-color 0.2s ease, background 0.2s ease;
         }
-        .animation-editor-mini-btn:hover {
-            border-color: rgba(255, 255, 255, 0.38);
-            background: rgba(191, 40, 27, 0.36);
+        .animation-editor-close:hover {
+            border-color: rgba(255, 255, 255, 0.42);
+            background: rgba(191, 40, 27, 0.34);
         }
-        .animation-editor-mini-btn:disabled {
-            opacity: 0.45;
-            cursor: not-allowed;
+        .animation-editor-panel .lot-editor-status {
+            min-height: 32px;
+            margin-bottom: 8px;
         }
-        .animation-editor-index {
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255, 255, 255, 0.88);
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .animation-editor-subtitle {
-            margin: 9px 0 6px;
+        .animation-editor-summary {
+            margin: 0 0 9px;
             font-size: 11px;
-            color: rgba(255, 255, 255, 0.66);
-            letter-spacing: 0.2px;
-            text-transform: uppercase;
+            color: rgba(255, 255, 255, 0.74);
+            line-height: 1.3;
         }
-        .animation-editor-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+        .animation-checkpoint-strip {
+            display: flex;
             gap: 8px;
+            overflow-x: auto;
+            margin: 0 0 10px;
+            padding: 0 0 4px;
+            scrollbar-width: thin;
+        }
+        .animation-checkpoint-strip::-webkit-scrollbar {
+            height: 6px;
+        }
+        .animation-checkpoint-strip::-webkit-scrollbar-thumb {
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.22);
+        }
+        .animation-checkpoint-pill {
+            width: 34px;
+            min-width: 34px;
+            height: 34px;
+            border-radius: 17px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: rgba(255, 255, 255, 0.92);
+            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .animation-checkpoint-pill:hover {
+            border-color: rgba(255, 255, 255, 0.42);
+            background: rgba(191, 40, 27, 0.3);
+        }
+        .animation-checkpoint-pill.active {
+            border-color: rgba(255, 255, 255, 0.5);
+            background: rgba(191, 40, 27, 0.52);
+        }
+        .animation-checkpoint-pill.playing {
+            box-shadow: 0 0 0 2px rgba(191, 40, 27, 0.26);
+        }
+        .animation-editor-actions {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 8px;
+        }
+        .animation-editor-actions .lot-editor-action-btn {
+            margin-top: 0;
+            padding: 10px 7px;
+            min-width: 0;
         }
         .animation-editor-action-btn-wide {
             width: 100%;
-        }
-        .animation-editor-danger:hover {
-            background: rgba(191, 40, 27, 0.52);
         }
         .lot-midpoint-layer {
             position: absolute;
@@ -1238,12 +1237,14 @@
         }
         @media (max-width: 720px) {
             .animation-editor-toggle-wrap {
-                left: 12px;
-                bottom: 78px;
+                top: 12px;
+                right: 12px;
             }
             .animation-editor-panel {
-                left: 12px;
-                bottom: 132px;
+                left: auto;
+                right: 12px;
+                top: 66px;
+                bottom: auto;
                 width: min(300px, calc(100vw - 24px));
             }
             .lot-editor-toggle-wrap {
@@ -1310,86 +1311,17 @@
         </button>
     </div>
     <div id="animationEditorPanel" class="lot-editor-panel animation-editor-panel" aria-live="polite">
-        <div class="lot-editor-title">Camera Animation</div>
-        <div id="animationEditorStatus" class="lot-editor-status">Capture checkpoints, then press Play for a custom looping route.</div>
-        <div class="animation-editor-row">
-            <label class="animation-editor-checkbox">
-                <input id="animationPathEnabledInput" type="checkbox">
-                <span>Path On</span>
-            </label>
-            <label class="animation-editor-checkbox">
-                <input id="animationLoopInput" type="checkbox">
-                <span>Loop</span>
-            </label>
-            <label class="animation-editor-inline" for="animationSpeedInput">
-                <span>Speed</span>
-                <input id="animationSpeedInput" type="number" min="0.1" step="0.05">
-            </label>
+        <div class="animation-editor-header">
+            <div class="lot-editor-title">Camera Path</div>
+            <button id="animationEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close camera path panel">×</button>
         </div>
-        <div class="animation-editor-checkpoint-nav">
-            <button id="animationPrevCheckpointButton" type="button" class="animation-editor-mini-btn">Prev</button>
-            <div id="animationCheckpointIndex" class="animation-editor-index">Checkpoint 0 / 0</div>
-            <button id="animationNextCheckpointButton" type="button" class="animation-editor-mini-btn">Next</button>
-        </div>
-        <div class="animation-editor-subtitle">Camera Position</div>
-        <div class="animation-editor-grid">
-            <div class="lot-editor-field">
-                <label for="animationCamXInput">Cam X</label>
-                <input id="animationCamXInput" type="number" step="0.001">
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationCamYInput">Cam Y</label>
-                <input id="animationCamYInput" type="number" step="0.001">
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationCamZInput">Cam Z</label>
-                <input id="animationCamZInput" type="number" step="0.001">
-            </div>
-        </div>
-        <div class="animation-editor-subtitle">Look Target</div>
-        <div class="animation-editor-grid">
-            <div class="lot-editor-field">
-                <label for="animationLookXInput">Look X</label>
-                <input id="animationLookXInput" type="number" step="0.001">
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationLookYInput">Look Y</label>
-                <input id="animationLookYInput" type="number" step="0.001">
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationLookZInput">Look Z</label>
-                <input id="animationLookZInput" type="number" step="0.001">
-            </div>
-        </div>
-        <div class="animation-editor-subtitle">Timing</div>
-        <div class="lot-editor-grid">
-            <div class="lot-editor-field">
-                <label for="animationDurationInput">Seconds To Next</label>
-                <input id="animationDurationInput" type="number" min="0.1" step="0.1">
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationCheckpointCountInput">Checkpoint Count</label>
-                <input id="animationCheckpointCountInput" type="text" readonly>
-            </div>
-            <div class="lot-editor-field">
-                <label for="animationApproxLoopInput">Loop Seconds</label>
-                <input id="animationApproxLoopInput" type="text" readonly>
-            </div>
-        </div>
-        <div class="lot-editor-actions">
-            <button id="animationCaptureCheckpointButton" type="button" class="lot-editor-action-btn">Capture New</button>
-            <button id="animationUpdateCheckpointButton" type="button" class="lot-editor-action-btn">Update View</button>
-        </div>
-        <div class="lot-editor-actions">
-            <button id="animationGoToCheckpointButton" type="button" class="lot-editor-action-btn">Go To</button>
-            <button id="animationDeleteCheckpointButton" type="button" class="lot-editor-action-btn animation-editor-danger">Delete</button>
-        </div>
-        <div class="lot-editor-actions">
+        <div id="animationEditorStatus" class="lot-editor-status">Move camera, click Capture, repeat. Click a checkpoint to jump.</div>
+        <div id="animationEditorSummary" class="animation-editor-summary">0 checkpoints captured</div>
+        <div id="animationCheckpointStrip" class="animation-checkpoint-strip" aria-label="Camera checkpoints"></div>
+        <div class="animation-editor-actions">
+            <button id="animationCaptureCheckpointButton" type="button" class="lot-editor-action-btn">Capture</button>
             <button id="animationPlayToggleButton" type="button" class="lot-editor-action-btn">Play</button>
-            <button id="animationStopButton" type="button" class="lot-editor-action-btn">Stop</button>
-        </div>
-        <div class="lot-editor-actions">
-            <button id="animationExportButton" type="button" class="lot-editor-action-btn animation-editor-action-btn-wide">Copy Animation JSON</button>
+            <button id="animationExportButton" type="button" class="lot-editor-action-btn animation-editor-action-btn-wide">Copy JSON</button>
         </div>
     </div>
 
@@ -1522,14 +1454,60 @@
             initialAngle: 294,
             center: { x: 0, y: -0.06, z: 0 },
             path: {
-                enabled: false,
+                enabled: true,
                 loop: true,
                 speed: 1,
                 checkpoints: [
-                    { position: { x: 0, y: 0.4, z: 4.7 }, lookAt: { x: 0, y: -0.1, z: 0 }, duration: 6 },
-                    { position: { x: 2.35, y: 0.58, z: 2.15 }, lookAt: { x: 0.25, y: -0.1, z: 0.12 }, duration: 5.2 },
-                    { position: { x: 0.3, y: 0.52, z: -3.25 }, lookAt: { x: -0.1, y: -0.1, z: -0.22 }, duration: 5.6 },
-                    { position: { x: -2.65, y: 0.46, z: 1.75 }, lookAt: { x: -0.24, y: -0.1, z: 0.06 }, duration: 5.1 }
+                    {
+                        position: { x: 0, y: 0.4, z: 4.7 },
+                        lookAt: { x: 0, y: -0.1, z: 0 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 2.35, y: 0.58, z: 2.15 },
+                        lookAt: { x: 0.25, y: -0.1, z: 0.12 },
+                        duration: 5.2
+                    },
+                    {
+                        position: { x: 0.3, y: 0.52, z: -3.25 },
+                        lookAt: { x: -0.1, y: -0.1, z: -0.22 },
+                        duration: 5.6
+                    },
+                    {
+                        position: { x: -2.65, y: 0.46, z: 1.75 },
+                        lookAt: { x: -0.24, y: -0.1, z: 0.06 },
+                        duration: 5.1
+                    },
+                    {
+                        position: { x: 3.975465, y: 0.509663, z: -2.983452 },
+                        lookAt: { x: 0.238518, y: -0.06, z: 0.457892 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 1.658145, y: 0.474344, z: -1.268041 },
+                        lookAt: { x: -2, y: -0.06, z: 1.986529 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: -1.350368, y: 2.161057, z: -2.742546 },
+                        lookAt: { x: -0.771315, y: -0.06, z: 1.615363 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: -3.461103, y: 2.246132, z: 4.230794 },
+                        lookAt: { x: -0.326625, y: -0.06, z: 1.211429 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 1.558975, y: 0.14017, z: 1.048907 },
+                        lookAt: { x: 0.838407, y: -0.06, z: 0.93039 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 3.951887, y: 0.320417, z: 0.26046 },
+                        lookAt: { x: 1.438791, y: -0.06, z: 0.458298 },
+                        duration: 6
+                    }
                 ]
             },
             editor: {
@@ -1734,7 +1712,7 @@
             return clamped + (current - clamped) * parameters.rebound.elasticity;
         };
         controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
-        const preserveLookTargetY = pathAnimationState.enabled;
+        const preserveLookTargetY = (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled);
         if (!preserveLookTargetY) {
             controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
         }
@@ -1758,44 +1736,8 @@
             camera.position.copy(direction.multiplyScalar(parameters.minDistance.radius).add(minDistCenter));
         }
 
-        // Zone-based splat toggling
-        if (!developerMode) {
-            let cameraInZone = false;
-
-            for (let zone of zoneConfigurations) {
-                let zoneCenter = new Vector3(zone.center.x, zone.center.y, zone.center.z);
-                let distanceToZone = camera.position.distanceTo(zoneCenter);
-
-                if (distanceToZone <= zone.radius) {
-                    cameraInZone = true;
-                    // Turn the "new" splats on immediately
-                    for (let splatName of zone.splatsOn) {
-                        if (splats[splatName] && !splats[splatName].visible) {
-                            splats[splatName].visible = true;
-                        }
-                    }
-                    // Turn the "old" splats off after 30ms delay
-                    for (let splatName of zone.splatsOff) {
-                        if (splats[splatName] && splats[splatName].visible) {
-                            setTimeout(() => {
-                                splats[splatName].visible = false;
-                            }, 15);
-                        }
-                    }
-                    break; // Assuming only one zone is active at a time
-                }
-            }
-
-            if (!cameraInZone) {
-                // Set default splat visibility when not in any zone
-                splats.splat1.visible = true;
-                if (splats.splat2.visible) {
-                    setTimeout(() => {
-                        splats.splat2.visible = false;
-                    }, 15);
-                }
-            }
-        }
+        // Hole-based splat visibility is handled by setActiveHole() / holeSplats
+        // (Zone-based splat toggling was from simple-google-earth-mechanics; main uses hole carousel instead)
     });
 
     // Developer mode toggle
@@ -2688,9 +2630,6 @@
 
     const configuredPathCheckpoints = Array.isArray(pathAnimationDefaults.checkpoints) ? pathAnimationDefaults.checkpoints : [];
     pathAnimationState.checkpoints = configuredPathCheckpoints.map(sanitizePathCheckpoint);
-    if (!pathAnimationState.checkpoints.length) {
-        pathAnimationState.checkpoints.push(buildCheckpointFromCurrentView(5));
-    }
     if (pathAnimationState.enabled) {
         applyPathCheckpoint(0);
         if (pathAnimationState.checkpoints.length > 1) {
@@ -3072,28 +3011,12 @@
     const animationEditorToggleWrap = document.getElementById('animationEditorToggleWrap');
     const animationEditorToggle = document.getElementById('animationEditorToggle');
     const animationEditorPanel = document.getElementById('animationEditorPanel');
+    const animationEditorCloseButton = document.getElementById('animationEditorCloseButton');
     const animationEditorStatus = document.getElementById('animationEditorStatus');
-    const animationPathEnabledInput = document.getElementById('animationPathEnabledInput');
-    const animationLoopInput = document.getElementById('animationLoopInput');
-    const animationSpeedInput = document.getElementById('animationSpeedInput');
-    const animationPrevCheckpointButton = document.getElementById('animationPrevCheckpointButton');
-    const animationNextCheckpointButton = document.getElementById('animationNextCheckpointButton');
-    const animationCheckpointIndex = document.getElementById('animationCheckpointIndex');
-    const animationCamXInput = document.getElementById('animationCamXInput');
-    const animationCamYInput = document.getElementById('animationCamYInput');
-    const animationCamZInput = document.getElementById('animationCamZInput');
-    const animationLookXInput = document.getElementById('animationLookXInput');
-    const animationLookYInput = document.getElementById('animationLookYInput');
-    const animationLookZInput = document.getElementById('animationLookZInput');
-    const animationDurationInput = document.getElementById('animationDurationInput');
-    const animationCheckpointCountInput = document.getElementById('animationCheckpointCountInput');
-    const animationApproxLoopInput = document.getElementById('animationApproxLoopInput');
+    const animationEditorSummary = document.getElementById('animationEditorSummary');
+    const animationCheckpointStrip = document.getElementById('animationCheckpointStrip');
     const animationCaptureCheckpointButton = document.getElementById('animationCaptureCheckpointButton');
-    const animationUpdateCheckpointButton = document.getElementById('animationUpdateCheckpointButton');
-    const animationGoToCheckpointButton = document.getElementById('animationGoToCheckpointButton');
-    const animationDeleteCheckpointButton = document.getElementById('animationDeleteCheckpointButton');
     const animationPlayToggleButton = document.getElementById('animationPlayToggleButton');
-    const animationStopButton = document.getElementById('animationStopButton');
     const animationExportButton = document.getElementById('animationExportButton');
     const tapDotGithubRawBase = 'https://raw.githubusercontent.com/HansenHomeAI/Red-Arrow-Ranch/main/3D%20Model%20Folders';
 
@@ -3160,24 +3083,6 @@
         return total;
     }
 
-    function setAnimationEditorInputsEnabled(enabled) {
-        [
-            animationCamXInput,
-            animationCamYInput,
-            animationCamZInput,
-            animationLookXInput,
-            animationLookYInput,
-            animationLookZInput,
-            animationDurationInput,
-            animationGoToCheckpointButton,
-            animationDeleteCheckpointButton,
-            animationUpdateCheckpointButton
-        ].forEach((element) => {
-            if (!element) return;
-            element.disabled = !enabled;
-        });
-    }
-
     function syncSelectedCheckpointIndex() {
         const count = pathAnimationState.checkpoints.length;
         if (!count) {
@@ -3190,53 +3095,62 @@
         );
     }
 
-    function updateSelectedCheckpointInputs() {
-        const selected = getSelectedPathCheckpoint();
-        if (!selected) {
-            [animationCamXInput, animationCamYInput, animationCamZInput, animationLookXInput, animationLookYInput, animationLookZInput, animationDurationInput].forEach((input) => {
-                if (input) input.value = '';
+    function renderAnimationCheckpointStrip() {
+        if (!animationCheckpointStrip) return;
+        const checkpoints = pathAnimationState.checkpoints;
+        animationCheckpointStrip.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        checkpoints.forEach((checkpoint, index) => {
+            const pill = document.createElement('div');
+            pill.className = 'animation-checkpoint-pill';
+            if (index === animationEditorState.selectedCheckpointIndex) {
+                pill.classList.add('active');
+            }
+            if (pathAnimationState.playing && index === getPathIndex(pathAnimationState.segmentIndex)) {
+                pill.classList.add('playing');
+            }
+            pill.textContent = String(index + 1);
+            pill.title = `Checkpoint ${index + 1}`;
+            pill.setAttribute('role', 'button');
+            pill.setAttribute('tabindex', '0');
+            pill.setAttribute('aria-label', `Go to checkpoint ${index + 1}`);
+            const activate = () => {
+                animationEditorState.selectedCheckpointIndex = index;
+                goToSelectedCheckpoint();
+            };
+            pill.addEventListener('click', activate);
+            pill.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    activate();
+                }
             });
-            setAnimationEditorInputsEnabled(false);
-            return;
-        }
-        setAnimationEditorInputsEnabled(true);
-        animationCamXInput.value = selected.position.x.toFixed(6);
-        animationCamYInput.value = selected.position.y.toFixed(6);
-        animationCamZInput.value = selected.position.z.toFixed(6);
-        animationLookXInput.value = selected.lookAt.x.toFixed(6);
-        animationLookYInput.value = selected.lookAt.y.toFixed(6);
-        animationLookZInput.value = selected.lookAt.z.toFixed(6);
-        animationDurationInput.value = Math.max(0.1, selected.duration || 5).toFixed(3);
+            fragment.appendChild(pill);
+        });
+
+        animationCheckpointStrip.appendChild(fragment);
     }
 
     function syncAnimationEditorFromState() {
         if (!animationEditorState.enabled || !animationEditorPanel) return;
         syncSelectedCheckpointIndex();
         const checkpointCount = pathAnimationState.checkpoints.length;
-        if (animationPathEnabledInput) animationPathEnabledInput.checked = !!pathAnimationState.enabled;
-        if (animationLoopInput) animationLoopInput.checked = !!pathAnimationState.loop;
-        if (animationSpeedInput) animationSpeedInput.value = Math.max(0.1, pathAnimationState.speed || 1).toFixed(2);
-        if (animationCheckpointIndex) {
-            animationCheckpointIndex.textContent = checkpointCount
-                ? `Checkpoint ${animationEditorState.selectedCheckpointIndex + 1} / ${checkpointCount}`
-                : 'Checkpoint 0 / 0';
+        const totalSeconds = getTotalPathSeconds();
+        if (animationEditorSummary) {
+            if (!checkpointCount) {
+                animationEditorSummary.textContent = '0 checkpoints captured';
+            } else {
+                const selected = animationEditorState.selectedCheckpointIndex + 1;
+                animationEditorSummary.textContent = `${checkpointCount} checkpoints • selected ${selected} • ${totalSeconds.toFixed(2)}s loop`;
+            }
         }
-        if (animationCheckpointCountInput) {
-            animationCheckpointCountInput.value = `${checkpointCount}`;
-        }
-        if (animationApproxLoopInput) {
-            animationApproxLoopInput.value = `${getTotalPathSeconds().toFixed(2)}s`;
-        }
-        if (animationPrevCheckpointButton) animationPrevCheckpointButton.disabled = checkpointCount <= 1;
-        if (animationNextCheckpointButton) animationNextCheckpointButton.disabled = checkpointCount <= 1;
         if (animationCaptureCheckpointButton) animationCaptureCheckpointButton.disabled = false;
         if (animationPlayToggleButton) {
             animationPlayToggleButton.textContent = pathAnimationState.playing ? 'Pause' : 'Play';
+            animationPlayToggleButton.disabled = checkpointCount < 2;
         }
-        if (animationStopButton) {
-            animationStopButton.disabled = !pathAnimationState.playing;
-        }
-        updateSelectedCheckpointInputs();
+        renderAnimationCheckpointStrip();
         syncSerializedPathToParameters();
         window.__cameraAnimationPath = getSerializedCameraPathPayload();
     }
@@ -3254,30 +3168,14 @@
         if (!pathAnimationState.enabled) {
             pathAnimationState.playing = false;
             autoRotate = !!parameters.animation.autoRotate;
-            setAnimationEditorStatus('Path disabled. Camera is now manual/orbit controlled.');
+            setAnimationEditorStatus('Path paused. Capture to add checkpoints.');
         } else if (pathAnimationState.checkpoints.length > 1) {
             autoRotate = false;
-            setAnimationEditorStatus('Path enabled. Press Play to preview.');
+            setAnimationEditorStatus('Path ready. Press Play.');
         } else {
             pathAnimationState.playing = false;
-            setAnimationEditorStatus('Path enabled. Add at least one more checkpoint to play.');
+            setAnimationEditorStatus('Capture at least 2 checkpoints to play.');
         }
-        syncAnimationEditorFromState();
-    }
-
-    function setPathLoopEnabled(enabled) {
-        pathAnimationState.loop = !!enabled;
-        const segmentCount = getPathSegmentCount();
-        if (segmentCount && pathAnimationState.segmentIndex >= segmentCount) {
-            pathAnimationState.segmentIndex = Math.max(0, segmentCount - 1);
-            pathAnimationState.segmentElapsed = 0;
-        }
-        syncAnimationEditorFromState();
-    }
-
-    function setPathSpeed(value) {
-        if (!Number.isFinite(value)) return;
-        pathAnimationState.speed = Math.min(Math.max(value, 0.1), 10);
         syncAnimationEditorFromState();
     }
 
@@ -3286,86 +3184,21 @@
         const selected = getSelectedPathCheckpoint();
         const nextDuration = selected ? Math.max(0.1, selected.duration || 5) : 5;
         const checkpoint = buildCheckpointFromCurrentView(nextDuration);
-        const insertIndex = pathAnimationState.checkpoints.length
-            ? animationEditorState.selectedCheckpointIndex + 1
-            : 0;
-        pathAnimationState.checkpoints.splice(insertIndex, 0, checkpoint);
-        animationEditorState.selectedCheckpointIndex = insertIndex;
-        setAnimationEditorStatus(`Captured checkpoint ${insertIndex + 1}.`);
+        pathAnimationState.checkpoints.push(checkpoint);
+        animationEditorState.selectedCheckpointIndex = pathAnimationState.checkpoints.length - 1;
+        setAnimationEditorStatus(`Captured checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
         syncAnimationEditorFromState();
     }
 
-    function updateSelectedCheckpointFromCurrentView() {
-        const selected = getSelectedPathCheckpoint();
-        if (!selected) return;
-        pathAnimationState.playing = false;
-        const duration = selected.duration;
-        const snapshot = buildCheckpointFromCurrentView(duration);
-        selected.position = snapshot.position;
-        selected.lookAt = snapshot.lookAt;
-        selected.duration = duration;
-        setAnimationEditorStatus(`Updated checkpoint ${animationEditorState.selectedCheckpointIndex + 1} from current view.`);
-        syncAnimationEditorFromState();
-    }
-
-    function deleteSelectedCheckpoint() {
-        if (!pathAnimationState.checkpoints.length) return;
-        pathAnimationState.playing = false;
-        const removedIndex = animationEditorState.selectedCheckpointIndex;
-        pathAnimationState.checkpoints.splice(removedIndex, 1);
-        if (!pathAnimationState.checkpoints.length) {
-            pathAnimationState.checkpoints.push(buildCheckpointFromCurrentView(5));
-        }
-        if (animationEditorState.selectedCheckpointIndex >= pathAnimationState.checkpoints.length) {
-            animationEditorState.selectedCheckpointIndex = pathAnimationState.checkpoints.length - 1;
-        }
-        pathAnimationState.segmentIndex = 0;
-        pathAnimationState.segmentElapsed = 0;
-        if (pathAnimationState.checkpoints.length < 2) {
-            pathAnimationState.playing = false;
-        }
-        setAnimationEditorStatus(`Deleted checkpoint ${removedIndex + 1}.`);
-        syncAnimationEditorFromState();
-    }
-
-    function goToSelectedCheckpoint() {
+    function goToSelectedCheckpoint(showStatus = true) {
         if (!pathAnimationState.checkpoints.length) return;
         pathAnimationState.playing = false;
         pathAnimationState.segmentElapsed = 0;
         pathAnimationState.segmentIndex = animationEditorState.selectedCheckpointIndex;
         applyPathCheckpoint(animationEditorState.selectedCheckpointIndex);
-        setAnimationEditorStatus(`Moved camera to checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
-        syncAnimationEditorFromState();
-    }
-
-    function updateSelectedCheckpointVector(group, axis, value) {
-        if (!Number.isFinite(value)) return;
-        const selected = getSelectedPathCheckpoint();
-        if (!selected) return;
-        pathAnimationState.playing = false;
-        if (group === 'position') {
-            selected.position[axis] = value;
-            if (!pathAnimationState.playing) {
-                camera.position[axis] = value;
-                camera.lookAt(controls.target);
-            }
-        } else if (group === 'lookAt') {
-            selected.lookAt[axis] = value;
-            if (!pathAnimationState.playing) {
-                controls.target[axis] = value;
-                camera.lookAt(controls.target);
-            }
+        if (showStatus) {
+            setAnimationEditorStatus(`Jumped to checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
         }
-        controls.update();
-        syncAnimationEditorFromState();
-    }
-
-    function updateSelectedCheckpointDuration(value) {
-        if (!Number.isFinite(value)) return;
-        const selected = getSelectedPathCheckpoint();
-        if (!selected) return;
-        pathAnimationState.playing = false;
-        selected.duration = Math.min(Math.max(value, 0.1), 120);
         syncAnimationEditorFromState();
     }
 
@@ -3381,7 +3214,7 @@
         }
         if (pathAnimationState.playing) {
             pathAnimationState.playing = false;
-            setAnimationEditorStatus('Path playback paused.');
+            setAnimationEditorStatus('Paused.');
             syncAnimationEditorFromState();
             return;
         }
@@ -3402,15 +3235,7 @@
         pathAnimationState.segmentElapsed = 0;
         pathAnimationState.playing = true;
         applyPathPose(pathAnimationState.segmentIndex, 0);
-        setAnimationEditorStatus('Playing camera path.');
-        syncAnimationEditorFromState();
-    }
-
-    function stopPathPlayback() {
-        pathAnimationState.playing = false;
-        pathAnimationState.segmentElapsed = 0;
-        goToSelectedCheckpoint();
-        setAnimationEditorStatus('Path playback stopped.');
+        setAnimationEditorStatus('Playing.');
         syncAnimationEditorFromState();
     }
 
@@ -3452,8 +3277,10 @@
             return;
         }
         if (!animationEditorPanel || !animationEditorToggle) return;
+        pathAnimationState.loop = true;
+        pathAnimationState.speed = 1;
         setAnimationEditorOpen(!!(parameters.animation.editor && parameters.animation.editor.defaultOpen));
-        setAnimationEditorStatus('Capture checkpoints, then press Play for a custom looping route.');
+        setAnimationEditorStatus('Move camera, click Capture, repeat. Click checkpoint circles to jump.');
         syncAnimationEditorFromState();
         window.__syncAnimationEditorUI = syncAnimationEditorFromState;
         window.__cameraPathDebug = {
@@ -4254,74 +4081,29 @@
         }
     });
 
-    function shiftSelectedAnimationCheckpoint(delta) {
-        const count = pathAnimationState.checkpoints.length;
-        if (!count) return;
-        animationEditorState.selectedCheckpointIndex = ((animationEditorState.selectedCheckpointIndex + delta) % count + count) % count;
-        syncAnimationEditorFromState();
-    }
-
     if (animationEditorToggle) {
         animationEditorToggle.addEventListener('click', () => {
             setAnimationEditorOpen(!animationEditorState.open);
         });
     }
-    if (animationPathEnabledInput) {
-        animationPathEnabledInput.addEventListener('change', () => setPathAnimationEnabled(animationPathEnabledInput.checked));
+    if (animationEditorCloseButton) {
+        animationEditorCloseButton.addEventListener('click', () => {
+            setAnimationEditorOpen(false);
+        });
     }
-    if (animationLoopInput) {
-        animationLoopInput.addEventListener('change', () => setPathLoopEnabled(animationLoopInput.checked));
-    }
-    if (animationSpeedInput) {
-        animationSpeedInput.addEventListener('input', () => setPathSpeed(parseFloat(animationSpeedInput.value)));
-    }
-    if (animationPrevCheckpointButton) {
-        animationPrevCheckpointButton.addEventListener('click', () => shiftSelectedAnimationCheckpoint(-1));
-    }
-    if (animationNextCheckpointButton) {
-        animationNextCheckpointButton.addEventListener('click', () => shiftSelectedAnimationCheckpoint(1));
-    }
+    window.addEventListener('keydown', (event) => {
+        if (event.key !== 'Escape') return;
+        if (!animationEditorState.open) return;
+        setAnimationEditorOpen(false);
+    });
     if (animationCaptureCheckpointButton) {
         animationCaptureCheckpointButton.addEventListener('click', captureCheckpointFromCurrentView);
-    }
-    if (animationUpdateCheckpointButton) {
-        animationUpdateCheckpointButton.addEventListener('click', updateSelectedCheckpointFromCurrentView);
-    }
-    if (animationDeleteCheckpointButton) {
-        animationDeleteCheckpointButton.addEventListener('click', deleteSelectedCheckpoint);
-    }
-    if (animationGoToCheckpointButton) {
-        animationGoToCheckpointButton.addEventListener('click', goToSelectedCheckpoint);
     }
     if (animationPlayToggleButton) {
         animationPlayToggleButton.addEventListener('click', togglePathPlayback);
     }
-    if (animationStopButton) {
-        animationStopButton.addEventListener('click', stopPathPlayback);
-    }
     if (animationExportButton) {
         animationExportButton.addEventListener('click', exportCameraPathToClipboard);
-    }
-    if (animationCamXInput) {
-        animationCamXInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'x', parseFloat(animationCamXInput.value)));
-    }
-    if (animationCamYInput) {
-        animationCamYInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'y', parseFloat(animationCamYInput.value)));
-    }
-    if (animationCamZInput) {
-        animationCamZInput.addEventListener('input', () => updateSelectedCheckpointVector('position', 'z', parseFloat(animationCamZInput.value)));
-    }
-    if (animationLookXInput) {
-        animationLookXInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'x', parseFloat(animationLookXInput.value)));
-    }
-    if (animationLookYInput) {
-        animationLookYInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'y', parseFloat(animationLookYInput.value)));
-    }
-    if (animationLookZInput) {
-        animationLookZInput.addEventListener('input', () => updateSelectedCheckpointVector('lookAt', 'z', parseFloat(animationLookZInput.value)));
-    }
-    if (animationDurationInput) {
-        animationDurationInput.addEventListener('input', () => updateSelectedCheckpointDuration(parseFloat(animationDurationInput.value)));
     }
 
     syncLotEditorInputsFromSelection();
