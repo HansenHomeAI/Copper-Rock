@@ -1,0 +1,3489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Red Arrow Ranch</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Fonts from original Shell.html -->
+    <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000000; /* Set background to black */
+            touch-action: none; /* Disable default touch behaviors */
+            user-select: none; /* Disable text selection */
+            -webkit-user-select: none; /* Safari specific styling */
+        }
+
+        /* Hart Bench Ranch UI Font Override */
+        .menu-container, .details-box, .details-content, .details-inner {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        #vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            background: linear-gradient(to top, black 0%, transparent 12%);
+            mix-blend-mode: multiply;
+        }
+        /* TapDot 2D label overlay - Apple Maps style */
+        #tapdot-labels-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .tapdot-label-bubble {
+            position: absolute;
+            transform: translate(-50%, -100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 14px 12px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-size: 13px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.95);
+            white-space: nowrap;
+            box-sizing: border-box;
+            opacity: 0;
+            width: fit-content;
+            min-width: 0;
+            overflow: visible;
+            background: rgba(255, 255, 255, 0.25);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 47' preserveAspectRatio='none'%3E%3Cpath d='M 21 0 L 119 0 Q 140 0 140 21 Q 140 42 119 42 L 74 42 L 70 47 L 66 42 L 21 42 Q 0 42 0 21 Q 0 0 21 0 Z' fill='white'/%3E%3C/svg%3E");
+            mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 47' preserveAspectRatio='none'%3E%3Cpath d='M 21 0 L 119 0 Q 140 0 140 21 Q 140 42 119 42 L 74 42 L 70 47 L 66 42 L 21 42 Q 0 42 0 21 Q 0 0 21 0 Z' fill='white'/%3E%3C/svg%3E");
+            -webkit-mask-size: 100% 100%;
+            mask-size: 100% 100%;
+            -webkit-mask-position: 0 0;
+            mask-position: 0 0;
+            -webkit-mask-repeat: no-repeat;
+            mask-repeat: no-repeat;
+        }
+        .tapdot-label-bubble .tapdot-label-bg {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        .tapdot-label-bubble .tapdot-label-bg path {
+            fill: none;
+        }
+        .tapdot-label-bubble .tapdot-label-text {
+            position: relative;
+            z-index: 1;
+            flex-shrink: 0;
+        }
+        /* Developer mode controls */
+        #developerControls {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+        }
+        #developerControls button {
+            margin-right: 10px;
+            padding: 10px;
+        }
+        
+        /* Compass Button - Commented out for later use */
+        /*
+        #menuButton {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.95);
+            border: 2px solid #333;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        #compassArrow {
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 20px solid #e74c3c;
+            transform-origin: center bottom;
+            transition: transform 0.1s ease-out;
+            position: relative;
+        }
+        
+        #compassArrow::after {
+            content: '';
+            position: absolute;
+            bottom: -22px;
+            left: -4px;
+            width: 0;
+            height: 0;
+            border-left: 4px solid transparent;
+            border-right: 4px solid transparent;
+            border-bottom: 8px solid #c0392b;
+        }
+        */
+
+        /* Hart Bench Ranch UI Styles - Ported with Extreme Care */
+        
+        /* Prevent text selection and highlight */
+        div, p, h1, h2, h3, h4, h5, h6, span {
+            user-select: none;
+            -webkit-user-select: none;
+            -ms-user-select: none;
+            -moz-user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        img {
+            user-drag: none;
+            -webkit-user-drag: none;
+        }
+
+        /* Invisible overlay when details are open */
+        #overlay-ui {
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            z-index: 8; 
+            background: transparent;
+            display: none; 
+        }
+        #overlay-ui.active {
+            display: block;
+        }
+
+        /* Parent Menu (default base values) */
+        .menu-container {
+            display: flex;
+            width: 105px;
+            height: 59px;
+            padding: 7px;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 1px;
+            border-radius: 30px;
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            z-index: 10;
+            background: rgba(128, 128, 128, 0.30);
+            -webkit-backdrop-filter: blur(50px);
+            backdrop-filter: blur(50px);
+            -webkit-transform-origin: left bottom;
+            transform-origin: left bottom; /* Will use this when scaling */
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+
+        .menu-container::before {
+            content: "";
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.4px;
+            pointer-events: none;
+        }
+
+        .menu-button {
+            width: 45px;
+            height: 45px;
+            position: relative;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 23.5px;
+            cursor: pointer;
+            overflow: hidden;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+        }
+
+        .menu-button img {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            z-index: 1;
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            pointer-events: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Hover circle for devices with actual hover capabilities */
+        @media (hover:hover) {
+            .menu-button:hover::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.15);
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                opacity: 1;
+                z-index: 0;
+            }
+        }
+
+        /* For touch devices, we'll use a class "active" added via JS to simulate the hover effect */
+        .menu-button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 0;
+            z-index: 0;
+            -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .menu-button.active::before {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Details Box (default base values) */
+        .details-box {
+            position: absolute;
+            z-index: 9; 
+            top: 60px;
+            left: 20px;
+            right: 20px;
+            bottom: 60px;
+            border-radius: 30px;
+            background: rgba(128,128,128,0.30);
+            -webkit-backdrop-filter: blur(50px);
+            backdrop-filter: blur(50px);
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            -webkit-transform: scale(0.95);
+            transform: scale(0.95);
+            pointer-events: none;
+            -webkit-transition: opacity 0.3s ease, -webkit-transform 0.3s ease;
+            -webkit-transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            overflow: hidden;
+        }
+
+        .details-box::before {
+            content: "";
+            position: absolute;
+            top: 0; 
+            left: 0; 
+            right: 0; 
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.4px;
+            pointer-events: none;
+        }
+
+        .details-box.show {
+            opacity: 1;
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            pointer-events: auto;
+        }
+
+        /* Ensure no native scrollbar: use overflow:scroll and hide scrollbar completely */
+        .details-content {
+            flex: 1;
+            margin: 4px; 
+            overflow-y: scroll;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+        }
+
+        .details-content::-webkit-scrollbar {
+            width: 0;
+            height: 0; /* Ensure no visible scrollbar on iOS */
+        }
+
+        .details-inner {
+            padding: 55px 30px; 
+        }
+
+        /* Custom scrollbar */
+        .custom-scrollbar {
+            position: absolute;
+            right: 3px; 
+            top: 0; 
+            bottom: 0; 
+            width: 5px;
+            background: transparent;
+            display: flex;
+            justify-content: center;
+            opacity: 0; 
+            -webkit-transition: opacity 0.2s ease-in-out;
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        .custom-scroll-thumb {
+            position: relative;
+            width: 2px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 4px;
+            -webkit-transition: width 0.2s ease, background 0.2s ease;
+            transition: width 0.2s ease, background 0.2s ease;
+            pointer-events: auto;
+            cursor: grab;
+            -webkit-transform: translateY(0);
+            transform: translateY(0);
+        }
+
+        .custom-scrollbar:hover .custom-scroll-thumb,
+        .custom-scroll-thumb:active {
+            width: 5px; 
+            background: rgba(255,255,255,1);
+        }
+
+        .details-content h1 {
+            font-size: 30px;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 16px;
+            color: white;
+        }
+
+        .details-content p {
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: 0.2px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 100px;
+        }
+
+        .legal-disclaimer {
+            font-size: 14px;
+            line-height: 1.3;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 20px;
+        }
+
+        /* Keyframes for the spring-like animations */
+        @-webkit-keyframes shrinkIcon {
+            0% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+            100% {
+                -webkit-transform: scale(0.7);
+                transform: scale(0.7);
+            }
+        }
+        @keyframes shrinkIcon {
+            0% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+            100% {
+                -webkit-transform: scale(0.7);
+                transform: scale(0.7);
+            }
+        }
+
+        @-webkit-keyframes expandIcon {
+            0% {
+                -webkit-transform: scale(0.7);
+                transform: scale(0.7);
+            }
+            60% {
+                -webkit-transform: scale(1.05);
+                transform: scale(1.05);
+            }
+            100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+        }
+        @keyframes expandIcon {
+            0% {
+                -webkit-transform: scale(0.7);
+                transform: scale(0.7);
+            }
+            60% {
+                -webkit-transform: scale(1.05);
+                transform: scale(1.05);
+            }
+            100% {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+            }
+        }
+        
+        /* Add this below your existing styles */
+        .touch-scrollbars {
+            scrollbar-width: auto !important; /* For Firefox */
+        }
+        .touch-scrollbars::-webkit-scrollbar {
+            width: 8px; /* or whatever width you like for native scrollbar on iOS/Android */
+            height: 8px;
+        }
+
+        /* Fullscreen button moved to details box upper right */
+        .details-fullscreen-button {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 45px;
+            height: 45px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 23.5px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 11;
+            box-sizing: border-box;
+            -webkit-box-sizing: border-box;
+            -moz-box-sizing: border-box;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        .details-fullscreen-button img {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            z-index: 1;
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            pointer-events: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Hover effects for fullscreen button in details box */
+        @media (hover:hover) {
+            .details-fullscreen-button:hover::before {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.15);
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                opacity: 1;
+                z-index: 0;
+            }
+        }
+
+        .details-fullscreen-button::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 0;
+            z-index: 0;
+            -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .details-fullscreen-button.active::before {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* TapDot popup – centered, dimensions based on first photo, caption at bottom */
+        .tapdot-popup {
+            position: fixed;
+            z-index: 11;
+            left: 50%;
+            top: 50%;
+            -webkit-transform: translate(-50%, -50%) scale(0.95);
+            transform: translate(-50%, -50%) scale(0.95);
+            max-width: calc(100vw - 48px);
+            max-height: calc(100vh - 80px);
+            border-radius: 30px;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            pointer-events: none;
+            -webkit-transition: opacity 0.3s ease, -webkit-transform 0.3s ease;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            overflow: hidden;
+        }
+        .tapdot-popup::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.08) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.4px;
+            pointer-events: none;
+        }
+        .tapdot-popup.show {
+            opacity: 1;
+            -webkit-transform: translate(-50%, -50%) scale(1);
+            transform: translate(-50%, -50%) scale(1);
+            pointer-events: auto;
+        }
+        /* Photo area: no scroll; image contained so full photo always visible, black letterboxing */
+        .tapdot-popup .tapdot-popup-content {
+            flex: 1;
+            margin: 0;
+            min-height: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        .tapdot-popup .tapdot-photo-wrap {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border-radius: 0;
+            margin: 0;
+            background: #000;
+            position: relative;
+        }
+        .tapdot-photo-spinner {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-top-color: rgba(255, 255, 255, 0.85);
+            border-radius: 50%;
+            -webkit-animation: tapdot-spinner-spin 0.7s linear infinite;
+            animation: tapdot-spinner-spin 0.7s linear infinite;
+            z-index: 1;
+            display: none;
+        }
+        .tapdot-photo-spinner.visible {
+            display: block;
+        }
+        @-webkit-keyframes tapdot-spinner-spin {
+            to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+        }
+        @keyframes tapdot-spinner-spin {
+            to { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+        }
+        .tapdot-popup .tapdot-photo {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            cursor: pointer;
+            height: auto;
+            object-fit: contain;
+            display: block;
+            -webkit-transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease;
+            /* Slight scale to eliminate sub-pixel black borders */
+            -webkit-transform: scale(1.02);
+            transform: scale(1.02);
+        }
+        .tapdot-popup .tapdot-photo.fade {
+            opacity: 0;
+        }
+        /* Carousel arrows: left/right edges of image, vertically centered */
+        .tapdot-carousel-nav {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .tapdot-carousel-nav.visible {
+            pointer-events: none;
+        }
+        .tapdot-carousel-nav.visible .tapdot-carousel-arrow {
+            pointer-events: auto;
+        }
+        .tapdot-carousel-nav.hidden { display: none !important; }
+        .tapdot-carousel-arrow {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            opacity: 0.5;
+            -webkit-transition: opacity 0.2s ease;
+            transition: opacity 0.2s ease;
+        }
+        .tapdot-carousel-arrow:hover { opacity: 1; }
+        .tapdot-carousel-arrow svg {
+            width: 22px;
+            height: 22px;
+            stroke-width: 2;
+        }
+        /* Dots: underneath caption, left-aligned with caption */
+        .tapdot-carousel-dots {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tapdot-carousel-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            cursor: pointer;
+            -webkit-transition: background 0.2s ease;
+            transition: background 0.2s ease;
+        }
+        .tapdot-carousel-dot:hover,
+        .tapdot-carousel-dot.active {
+            background: rgba(255, 255, 255, 1);
+        }
+        /* Caption overlay: fixed at bottom of popup, gradient + text + dots */
+        .tapdot-popup .tapdot-caption-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            pointer-events: none;
+        }
+        .tapdot-popup .tapdot-caption-overlay .tapdot-caption-wrap {
+            pointer-events: auto;
+        }
+        .tapdot-popup .tapdot-caption-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.5) 28%, rgba(0,0,0,0.12) 55%, transparent 100%);
+            z-index: 0;
+        }
+        .tapdot-popup .tapdot-caption-wrap {
+            position: relative;
+            z-index: 1;
+            padding: 0 28px 28px;
+        }
+        .tapdot-popup .tapdot-caption {
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.5;
+            letter-spacing: 0.2px;
+            color: rgba(255, 255, 255, 0.95);
+            margin: 0 0 8px;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+        .tapdot-popup .tapdot-carousel-dots-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tapdot-popup-content { position: relative; }
+        .tapdot-popup-close {
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 45px;
+            height: 45px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 23.5px;
+            cursor: pointer;
+            z-index: 11;
+            background: transparent;
+            border: none;
+            overflow: hidden;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        .tapdot-popup-close::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            -webkit-transform: scale(0);
+            transform: scale(0);
+            opacity: 0;
+            z-index: 0;
+            -webkit-transition: -webkit-transform 0.3s ease, opacity 0.3s ease;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        @media (hover: hover) {
+            .tapdot-popup-close:hover::before {
+                -webkit-transform: scale(1);
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        .tapdot-popup-close.active::before {
+            -webkit-transform: scale(1);
+            transform: scale(1);
+            opacity: 1;
+        }
+        .tapdot-popup-close img {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            z-index: 1;
+            pointer-events: none;
+            filter: brightness(0) invert(1);
+        }
+
+        /* Compass icon in parent menu */
+        #compassIcon {
+            width: 21px;
+            height: 21px;
+            position: relative;
+            z-index: 1;
+            transform-origin: center center; /* Center rotation point */
+            /* No transition on transform to allow real-time rotation */
+            pointer-events: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+        /* Lot editor controls */
+        .lot-editor-toggle-wrap {
+            position: absolute;
+            right: 20px;
+            bottom: 20px;
+            z-index: 12;
+        }
+        .lot-editor-toggle {
+            min-width: 126px;
+            height: 45px;
+            border-radius: 23.5px;
+            border: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 16px;
+            cursor: pointer;
+            color: rgba(255, 255, 255, 0.92);
+            background: rgba(128, 128, 128, 0.32);
+            -webkit-backdrop-filter: blur(50px);
+            backdrop-filter: blur(50px);
+            font: 500 13px/1 'Helvetica Neue', Arial, sans-serif;
+            letter-spacing: 0.2px;
+            position: relative;
+            overflow: hidden;
+        }
+        .lot-editor-toggle::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.4) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.4px;
+            pointer-events: none;
+        }
+        .lot-editor-toggle svg,
+        .lot-editor-toggle span {
+            position: relative;
+            z-index: 1;
+        }
+        .lot-editor-toggle svg {
+            width: 16px;
+            height: 16px;
+            opacity: 0.9;
+        }
+        .lot-editor-toggle.active {
+            color: #fff;
+            background: rgba(191, 40, 27, 0.45);
+        }
+        .lot-editor-panel {
+            position: absolute;
+            right: 20px;
+            bottom: 76px;
+            z-index: 12;
+            width: 248px;
+            border-radius: 20px;
+            background: rgba(32, 32, 32, 0.5);
+            -webkit-backdrop-filter: blur(45px);
+            backdrop-filter: blur(45px);
+            color: rgba(255, 255, 255, 0.95);
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            padding: 14px 14px 12px;
+            box-sizing: border-box;
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .lot-editor-panel::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: inherit;
+            background: linear-gradient(145deg, rgba(255,255,255,0.24) 0%, rgba(255,255,255,0) 41%, rgba(255,255,255,0) 57%, rgba(255,255,255,0.24) 100%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            padding: 1.2px;
+            pointer-events: none;
+        }
+        .lot-editor-panel.active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+        .lot-editor-panel > * {
+            position: relative;
+            z-index: 1;
+        }
+        .lot-editor-title {
+            font-size: 13px;
+            font-weight: 600;
+            letter-spacing: 0.2px;
+            margin-bottom: 7px;
+        }
+        .lot-editor-status {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.78);
+            margin-bottom: 10px;
+            line-height: 1.35;
+            min-height: 32px;
+        }
+        .lot-editor-vertex {
+            font-size: 12px;
+            margin-bottom: 10px;
+            color: rgba(255, 255, 255, 0.88);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .lot-editor-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .lot-editor-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            min-width: 0;
+        }
+        .lot-editor-field label {
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.74);
+        }
+        .lot-editor-field input {
+            width: 100%;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.32);
+            color: #fff;
+            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            padding: 8px 8px;
+            box-sizing: border-box;
+            outline: none;
+        }
+        .lot-editor-field input:focus {
+            border-color: rgba(255, 255, 255, 0.42);
+        }
+        .lot-editor-field input:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+        .lot-editor-actions {
+            margin-top: 11px;
+            display: flex;
+            gap: 8px;
+        }
+        .lot-editor-action-btn {
+            flex: 1;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.34);
+            color: #fff;
+            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            padding: 9px 8px;
+            cursor: pointer;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+        .lot-editor-action-btn:hover {
+            border-color: rgba(255, 255, 255, 0.38);
+            background: rgba(191, 40, 27, 0.38);
+        }
+        .lot-midpoint-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 11;
+        }
+        .lot-midpoint-plus {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 0;
+            color: #fff;
+            font: 500 20px/30px 'Helvetica Neue', Arial, sans-serif;
+            text-align: center;
+            padding: 0;
+            background: rgba(45, 45, 45, 0.75);
+            -webkit-backdrop-filter: blur(28px);
+            backdrop-filter: blur(28px);
+            box-shadow: 0 3px 16px rgba(0, 0, 0, 0.22);
+            pointer-events: auto;
+            cursor: pointer;
+            transform: translate(-50%, -50%);
+        }
+        .lot-midpoint-plus:hover {
+            background: rgba(191, 40, 27, 0.85);
+        }
+        @media (max-width: 720px) {
+            .lot-editor-toggle-wrap {
+                right: 12px;
+                bottom: 12px;
+            }
+            .lot-editor-panel {
+                right: 12px;
+                bottom: 66px;
+                width: min(230px, calc(100vw - 24px));
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="vignette"></div>
+    <div id="tapdot-labels-layer"></div>
+    <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; font-size: 24px; font-family: Arial, sans-serif;">Lot #1</div>
+
+    <!-- Compass temporarily hidden - will be used later for UI functionality -->
+    <!-- <div id="menuButton">
+        <div id="compassArrow"></div>
+    </div> -->
+
+    <!-- Hart Bench Ranch UI - Ported with Extreme Care -->
+    
+    <!-- Invisible overlay to detect outside clicks when details are open -->
+    <div id="overlay-ui"></div>
+
+    <div class="menu-container" id="menuContainer">
+        <div id="detailsButton" class="menu-button">
+            <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg" alt="Details" draggable="false">
+        </div>
+        <div id="compassButton" class="menu-button">
+            <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
+        </div>
+    </div>
+
+    <!-- <div class="lot-editor-toggle-wrap">
+        <button id="lotEditorToggle" class="lot-editor-toggle" type="button" aria-pressed="false" aria-label="Toggle lot edit mode">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 17.5V21h3.5L17.2 10.3l-3.5-3.5L3 17.5z"></path>
+                <path d="M12.4 7.6l3.5 3.5"></path>
+                <path d="M18 6l1.2-1.2a1.8 1.8 0 1 1 2.5 2.5L20.5 8.5"></path>
+            </svg>
+            <span>Edit Lots</span>
+        </button>
+    </div> -->
+    <div id="lotEditorPanel" class="lot-editor-panel" aria-live="polite">
+        <div class="lot-editor-title">Lot Line Editing</div>
+        <div id="lotEditorStatus" class="lot-editor-status">Enable mode, then drag vertices to adjust boundaries.</div>
+        <div id="lotEditorVertexName" class="lot-editor-vertex">Vertex: none selected</div>
+        <div class="lot-editor-grid">
+            <div class="lot-editor-field">
+                <label for="lotVertexXInput">X</label>
+                <input id="lotVertexXInput" type="number" step="0.001" disabled>
+            </div>
+            <div class="lot-editor-field">
+                <label for="lotVertexYInput">Y</label>
+                <input id="lotVertexYInput" type="number" step="0.001" disabled>
+            </div>
+            <div class="lot-editor-field">
+                <label for="lotVertexZInput">Z</label>
+                <input id="lotVertexZInput" type="number" step="0.001" disabled>
+            </div>
+        </div>
+        <div class="lot-editor-actions">
+            <button id="lotCopyJsonButton" type="button" class="lot-editor-action-btn">Copy Lot JSON</button>
+        </div>
+    </div>
+    <div id="lotMidpointLayer" class="lot-midpoint-layer"></div>
+
+    <!-- TapDot popup: photo carousel (tap left/right to navigate), caption at bottom -->
+    <div id="tapdotPopup" class="tapdot-popup">
+        <button type="button" class="tapdot-popup-close" id="tapdotPopupClose" aria-label="Close">
+            <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/Close2IconDefault.svg" alt="" draggable="false">
+        </button>
+        <div class="tapdot-popup-content">
+            <div class="tapdot-photo-wrap">
+                <div id="tapdotPhotoSpinner" class="tapdot-photo-spinner" aria-hidden="true"></div>
+                <img id="tapdotPopupPhoto" class="tapdot-photo" src="" alt="">
+            </div>
+            <div id="tapdotCarouselNav" class="tapdot-carousel-nav hidden">
+                <div id="tapdotCarouselPrev" class="tapdot-carousel-arrow" aria-label="Previous photo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </div>
+                <div id="tapdotCarouselNext" class="tapdot-carousel-arrow" aria-label="Next photo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </div>
+            </div>
+        </div>
+        <div class="tapdot-caption-overlay">
+            <div class="tapdot-caption-gradient" aria-hidden="true"></div>
+            <div class="tapdot-caption-wrap">
+                <p id="tapdotPopupCaption" class="tapdot-caption"></p>
+                <div id="tapdotCarouselDots" class="tapdot-carousel-dots-wrap"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="detailsBox" class="details-box">
+        <!-- Fullscreen button moved to upper right corner of details box -->
+        <div id="fullscreenButton" class="details-fullscreen-button">
+            <img src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg" alt="Fullscreen" draggable="false">
+        </div>
+        <div class="details-content" id="detailsContent">
+            <div class="details-inner" id="detailsInner">
+                <h1>Red Arrow Ranch</h1>
+                <hr style="border:none; border-top:1px solid rgba(255,255,255,0.4); margin:15px 0;">
+                <hr style="border:none; border-top:0px solid rgba(255,255,255,0.4); margin:13px 0;">
+
+                <p>There are places that simply exist within the landscape—and then there are those that define it. Set against the backdrop of the Uinta and Wasatch Mountain ranges, Red Arrow Ranch is a world-class equestrian estate that stands as one of Utah's true legacy properties. With over 22 acres of pristine land, a state-of-the-art indoor arena, and every detail crafted with intention, this is more than a ranch. It's a performance estate for champions—built with purpose, precision, and heart.</p>
+
+                <div class="legal-disclaimer">
+                    <hr style="border:none; border-top:1px solid rgba(255,255,255,0.4); margin:30px 0;">
+                    
+                </div>
+            </div>
+        </div>
+        <div class="custom-scrollbar" id="customScrollbar">
+            <div class="custom-scroll-thumb" id="customThumb"></div>
+        </div>
+    </div>
+
+    <!-- Developer mode controls -->
+    <div id="developerControls">
+        <button id="toggleSplat1">Toggle Splat 1</button>
+        <button id="toggleSplat2">Toggle Splat 2</button>
+    </div>
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.157.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.157.0/examples/jsm/",
+            "@lumaai/luma-web": "https://unpkg.com/@lumaai/luma-web@0.2.0/dist/library/luma-web.module.js"
+        }
+    }
+    </script>
+    <script type="module">
+    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane } from 'three';
+
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { LumaSplatsThree } from '@lumaai/luma-web';
+
+    function isChrome() {
+        return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+    }
+
+    // Parameters
+    const parameters = {
+        camera: {
+            minY: 0.14,
+            maxZoomOut: 1000,
+            startPosition: { x: 0, y: 0.4, z: 4.7 },
+        },
+        scene: {
+            origin: { x: 0, y: -0.1, z: 0 },
+            targetLimit: { x: 2, z: 2 }
+        },
+        animation: {
+            autoRotate: true,
+            startRadius: 3,
+            speed: -0.003,
+            initialAngle: 290,  // Start at 200 degrees
+            center: { x: 0, y: 0, z: 0 }   // ← new!
+        },
+        rebound: {
+            speed: 0.2,
+            elasticity: 0.05
+        },
+        maxDistance: {
+            base: 5,
+            responsiveness: 1.7
+        },
+        // (1) Added new minDistance parameter
+        minDistance: {
+            center: { x: 0, y: 0, z: 0 },
+            radius: 0.8
+        },
+        developerMode: false,  // Set this to true to activate developer mode
+        // Compass configuration - easily adjustable
+        compass: {
+            northDirection: 270  // 0 = positive Z axis, 90 = positive X axis, etc.
+        }
+    };
+
+    // "Sold" hotspot configuration (optional overlay text)
+    const soldHotspotConfigurations = [
+        //{ text: 'SOLD', position: { x: 0.22, y: 0.5, z: -0.85 }, scale: 0.2, verticalOffset: 0.06 },
+    ];
+
+    // TapDots: info icons (No Photos) = label pops up above; camera icons = photo popup with caption
+    // Camera icons use photos[] array for carousel; add more paths to include more images per location
+    const tapDotConfigurations = [
+        // Camera icons (have photos) - photos[] = carousel images, caption = bio in popup (scale 0.225 = 25% smaller)
+        { position: { x: -0.214299, y: -0.098, z: -0.445458 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Chicken Coop/1.jpg', '3D Model Folders/Chicken Coop/2.jpg', '3D Model Folders/Chicken Coop/3.jpg'], caption: 'Chicken Coop', priority: 'low' },
+        { position: { x: -0.736097, y: -0.051, z: -0.666932 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Covered Round Pen/1.jpg', '3D Model Folders/Covered Round Pen/2.jpg'], caption: 'Covered Round Pen', priority: 'medium' },
+        { position: { x: -0.006745, y: -0.072, z: -0.805941 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/European Barn/1.jpg', '3D Model Folders/European Barn/2.jpg', '3D Model Folders/European Barn/3.jpg', '3D Model Folders/European Barn/4.jpg', '3D Model Folders/European Barn/5.jpg', '3D Model Folders/European Barn/6.jpg'], caption: 'European Barn', priority: 'medium' },
+        { position: { x: -0.257345, y: -0.088, z: -0.377092 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Greenhouse/1.jpg', '3D Model Folders/Greenhouse/2.jpg'], caption: 'Greenhouse', priority: 'low' },
+        { position: { x: 0.378204, y: 0.014, z: 0.783111 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Heritage Barn/1.jpg', '3D Model Folders/Heritage Barn/2.jpg', '3D Model Folders/Heritage Barn/3.jpg', '3D Model Folders/Heritage Barn/4.jpg', '3D Model Folders/Heritage Barn/5.jpg', '3D Model Folders/Heritage Barn/6.jpg', '3D Model Folders/Heritage Barn/7.jpg', '3D Model Folders/Heritage Barn/8.jpg'], caption: 'Heritage Barn', priority: 'medium' },
+        { position: { x: -0.408896, y: 0.01, z: 0.613267 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Indoor Riding Arena/1.jpg', '3D Model Folders/Indoor Riding Arena/2.jpg', '3D Model Folders/Indoor Riding Arena/3.jpg'], caption: 'Indoor Riding Arena', priority: 'medium' },
+        { position: { x: -0.053877, y: -0.027, z: -0.195653 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Main Residence/1.jpg', '3D Model Folders/Main Residence/2.jpg', '3D Model Folders/Main Residence/3.jpg', '3D Model Folders/Main Residence/4.jpg', '3D Model Folders/Main Residence/5.jpg', '3D Model Folders/Main Residence/6.jpg', '3D Model Folders/Main Residence/7.jpg', '3D Model Folders/Main Residence/8.jpg', '3D Model Folders/Main Residence/9.jpg', '3D Model Folders/Main Residence/10.jpg', '3D Model Folders/Main Residence/11.jpg', '3D Model Folders/Main Residence/12.jpg', '3D Model Folders/Main Residence/13.jpg'], caption: 'Main Residence', priority: 'high' },
+        { position: { x: -0.503495, y: -0.114, z: -0.901147 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Outdoor Riding Arena/1.jpg', '3D Model Folders/Outdoor Riding Arena/2.jpg'], caption: 'Outdoor Riding Arena', priority: 'medium' },
+        { position: { x: -0.34914, y: -0.097, z: -0.200963 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Playground/1.jpg', '3D Model Folders/Playground/2.jpg', '3D Model Folders/Playground/3.jpg', '3D Model Folders/Playground/4.jpg'], caption: 'Playground', priority: 'low' },
+        { position: { x: -1.048662, y: -0.061, z: 0.301388 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Trail Riding Course/1.jpg'], caption: 'Trail Riding Course', priority: 'medium' },
+        // Info icons (No Photos) - caption = label that pops up above icon
+        { position: { x: -0.748377, y: -0.04, z: -0.413722 }, scale: 0.225, icon: 'info', caption: 'Garage Workshop', priority: 'low' },
+        { position: { x: -0.74994, y: -0.046, z: -0.250282 }, scale: 0.225, icon: 'info', caption: 'Hay Storage', priority: 'low' },
+    ];
+
+    // Tap detection: scale with visual size (so hit area matches apparent dot size)
+    const tapRadiusMultiplier = 1.6; // Hit area = visible dot radius * this (slightly larger for easier tap)
+
+    // Centralized control section for BorderDots and BorderLines (lot lines slope: y=-0.07 at max Z, y=-0.16 at min Z, delta 0.09)
+    // Vertices trace: outer property boundary + internal parcel divisions (NW 8.56, NE 8.56, South 19.44 acres)
+    const borderDotPositions = [
+        { name: 'Lot_V1', position: { x: 0.619899, y: -0.07236, z: 0.910146 } },
+        { name: 'Lot_V4', position: { x: 0.613988, y: -0.12955, z: -0.646242 } },
+        { name: 'Lot_V5', position: { x: 0.432838, y: -0.1341, z: -0.769965 } },
+        { name: 'Lot_V6', position: { x: 0.356929, y: -0.13712, z: -0.852191 } },
+        { name: 'Lot_V7', position: { x: 0.134329, y: -0.139, z: -0.90331 } },
+        { name: 'Lot_V8', position: { x: 0.047765, y: -0.14156, z: -0.972969 } },
+        { name: 'Lot_V9', position: { x: -0.858899, y: -0.15415, z: -1.315852 } },
+        { name: 'Lot_V10', position: { x: -0.903571, y: -0.15539, z: -1.3497 } },
+        { name: 'Lot_V11', position: { x: -1.743049, y: -0.152, z: -1.527306 } },
+        { name: 'Lot_V12', position: { x: -1.877436, y: -0.105, z: -0.181094 } },
+        { name: 'Lot_V13', position: { x: -1.830478, y: -0.06, z: 0.921714 } },
+        { name: 'Lot_V15', position: { x: -0.851375, y: -0.12134, z: -0.344962 } },
+        { name: 'Lot_V16', position: { x: -0.860571, y: -0.07236, z: 0.910337 } },
+        { name: 'Lot_V18', position: { x: 0.608931, y: -0.09746, z: 0.230155 } },
+        { name: 'Lot_V19', position: { x: -0.907887, y: -0.15727, z: -1.432879 } },
+        { name: 'Lot_V20', position: { x: -0.970607, y: -0.1613, z: -1.52137 } },
+        { name: 'Lot_V21', position: { x: 0.480793, y: -0.09984, z: 0.164791 } },
+        { name: 'Lot_V22', position: { x: -0.208798, y: -0.14321, z: -1.079954 } },
+        { name: 'Lot_V23', position: { x: -0.68705, y: -0.15194, z: -1.24425 } },
+        { name: 'Lot_V24', position: { x: -0.520112, y: -0.14624, z: -1.139954 } },
+        { name: 'Lot_V25', position: { x: -0.140558, y: -0.14154, z: -1.024829 } }
+    ];
+
+    let borderLineConnections = [
+        { start: 'Lot_V1', end: 'Lot_V18' },
+        { start: 'Lot_V18', end: 'Lot_V4' },
+        { start: 'Lot_V4', end: 'Lot_V5' },
+        { start: 'Lot_V5', end: 'Lot_V6' },
+        { start: 'Lot_V6', end: 'Lot_V7' },
+        { start: 'Lot_V7', end: 'Lot_V8' },
+        { start: 'Lot_V8', end: 'Lot_V25' },
+        { start: 'Lot_V25', end: 'Lot_V22' },
+        { start: 'Lot_V22', end: 'Lot_V24' },
+        { start: 'Lot_V24', end: 'Lot_V23' },
+        { start: 'Lot_V23', end: 'Lot_V9' },
+        { start: 'Lot_V9', end: 'Lot_V10' },
+        { start: 'Lot_V10', end: 'Lot_V19' },
+        { start: 'Lot_V19', end: 'Lot_V20' },
+        { start: 'Lot_V20', end: 'Lot_V11' },
+        { start: 'Lot_V11', end: 'Lot_V12' },
+        { start: 'Lot_V12', end: 'Lot_V13' },
+        { start: 'Lot_V13', end: 'Lot_V16' },
+        { start: 'Lot_V16', end: 'Lot_V1' },
+        { start: 'Lot_V16', end: 'Lot_V15' },
+        { start: 'Lot_V15', end: 'Lot_V9' },
+        { start: 'Lot_V18', end: 'Lot_V21' },
+        { start: 'Lot_V21', end: 'Lot_V15' }
+    ];
+
+    // Border Dot Parameters
+    const borderDotParams = {
+        radius: 0.01,
+        widthSegments: 16,
+        heightSegments: 16,
+        color: 0xd3d3d3
+    };
+
+    const lotEditState = {
+        active: false,
+        selectedVertexName: null,
+        pointerNDC: new Vector2(),
+        dragRaycaster: new Raycaster(),
+        dragPlane: new Plane(new Vector3(0, 1, 0), -0.1),
+        dragging: {
+            active: false,
+            pointerId: null,
+            vertexName: null,
+            planeY: 0.1,
+            mergeTargetName: null,
+            mergeHoverStartMs: 0,
+            mergeTimerId: null
+        },
+        midpointButtons: new Map(),
+        suppressNextClick: false,
+        cameraSnapshot: null,
+        mergeScreenDistancePx: 20,
+        mergeHoldMs: 1500,
+        midpointMinScreenDistancePx: 130,
+        midpointMinSpacingPx: 44,
+        midpointMaxButtons: 10,
+        draggingTapDot: null,
+        draggingTapDotPointerId: null,
+        draggingTapDotPlaneY: 0,
+        lastTapDotPointerDownTime: 0,
+        lastTapDotPointerDownTarget: null,
+        selectedTapDot: null,
+        potentialTapDotDrag: null,
+        potentialTapDotDragPointerId: null
+    };
+
+    // Base sizes for TapDots and Icons
+    const tapDotBaseSize = 0.08; // TapDot sphere size (doubled for better visibility)
+    const iconBaseSize = 0.16;   // Icon size (doubled for better visibility)
+
+    // Zone configurations
+    const zoneConfigurations = [
+        {
+            name: 'Zone1',
+            center: { x: 0, y: 0, z: 0 }, // Center point of the zone
+            radius: 100.6, // Radius of the zone
+            splatsOn: ['splat2'], // Splats to turn ON when inside this zone
+            splatsOff: ['splat1'] // Splats to turn OFF when inside this zone
+        }
+    ];
+
+    if (isChrome()) {
+        parameters.animation.speed *= 0.5;
+    }
+
+    let renderer = new WebGLRenderer({ antialias: false });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setClearColor(new Color(0x000000));
+    renderer.setPixelRatio(window.devicePixelRatio * 0.8);
+    document.body.appendChild(renderer.domElement);
+    const tapdotLabelsLayerEl = document.getElementById('tapdot-labels-layer');
+    if (tapdotLabelsLayerEl) document.body.appendChild(tapdotLabelsLayerEl);
+
+    let scene = new Scene();
+
+    let camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, parameters.camera.maxZoomOut);
+    camera.position.set(parameters.camera.startPosition.x, parameters.camera.startPosition.y, parameters.camera.startPosition.z);
+
+    let controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+
+    // (2) Halved the zoom sensitivity
+    controls.zoomSpeed = 0.5;
+
+	// ←– Shoot the target at your origin
+	controls.target.set(0, 0, 0);
+	controls.update();  // make OrbitControls re-sync to that new target
+
+    let sceneCenter = new Vector3(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
+
+    controls.addEventListener('change', () => {
+        // Restrict camera Y minimum
+        if (camera.position.y < parameters.camera.minY) {
+            camera.position.y += (parameters.camera.minY - camera.position.y) * parameters.rebound.speed;
+        }
+
+        // Restrict target movement on X and Z axes with elastic rebound
+        const clampRebound = (current, min, max) => {
+            let clamped = Math.min(Math.max(current, min), max);
+            return clamped + (current - clamped) * parameters.rebound.elasticity;
+        };
+        controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
+        controls.target.y = parameters.scene.origin.y; // Set target Y limit
+        controls.target.z = clampRebound(controls.target.z, -parameters.scene.targetLimit.z, parameters.scene.targetLimit.z);
+
+        // Restrict camera distance from the scene center
+        const maxDistance = calculateMaxDistance();  // Get the updated max distance
+        if (camera.position.distanceTo(sceneCenter) > maxDistance) {
+            let direction = new Vector3().subVectors(camera.position, sceneCenter).normalize();
+            camera.position.copy(direction.multiplyScalar(maxDistance).add(sceneCenter));
+        }
+
+        // (3) Clamp camera to new minDistance
+        const minDistCenter = new Vector3(
+            parameters.minDistance.center.x, 
+            parameters.minDistance.center.y, 
+            parameters.minDistance.center.z
+        );
+        if (camera.position.distanceTo(minDistCenter) < parameters.minDistance.radius) {
+            let direction = new Vector3().subVectors(camera.position, minDistCenter).normalize();
+            camera.position.copy(direction.multiplyScalar(parameters.minDistance.radius).add(minDistCenter));
+        }
+
+        // Zone-based splat toggling
+        if (!developerMode) {
+            let cameraInZone = false;
+
+            for (let zone of zoneConfigurations) {
+                let zoneCenter = new Vector3(zone.center.x, zone.center.y, zone.center.z);
+                let distanceToZone = camera.position.distanceTo(zoneCenter);
+
+                if (distanceToZone <= zone.radius) {
+                    cameraInZone = true;
+                    // Turn the "new" splats on immediately
+                    for (let splatName of zone.splatsOn) {
+                        if (splats[splatName] && !splats[splatName].visible) {
+                            splats[splatName].visible = true;
+                        }
+                    }
+                    // Turn the "old" splats off after 30ms delay
+                    for (let splatName of zone.splatsOff) {
+                        if (splats[splatName] && splats[splatName].visible) {
+                            setTimeout(() => {
+                                splats[splatName].visible = false;
+                            }, 15);
+                        }
+                    }
+                    break; // Assuming only one zone is active at a time
+                }
+            }
+
+            if (!cameraInZone) {
+                // Set default splat visibility when not in any zone
+                // "new" is splat1 here, so it goes on right away
+                splats.splat1.visible = true;
+                // "old" is splat2 here, so it goes off after 30ms
+                if (splats.splat2.visible) {
+                    setTimeout(() => {
+                        splats.splat2.visible = false;
+                    }, 15);
+                }
+            }
+        }
+    });
+
+    // Developer mode toggle
+    const developerMode = parameters.developerMode;
+
+    // Splat configurations
+    const splatConfigs = {
+        splat1: {
+            source: '',
+            position: new Vector3(0.063, 0, -0.165),
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: 1
+        },
+        splat2: {
+            source: 'https://lumalabs.ai/embed/55b8976d-0a05-4f46-b5dc-0ea29aeae1f5?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
+            position: new Vector3(0, 0, 0),
+            rotation: { x: 0, y: 0, z: 0 },
+            scale: 1
+        }
+    };
+
+    // Create the first splat
+    let splat = new LumaSplatsThree({
+        source: splatConfigs.splat1.source,
+        particleRevealEnabled: true,
+        particleRevealDuration: 3.33 // Speed up by 50%
+    });
+    splat.material.depthTest = true;
+    splat.renderOrder = 999;
+    splat.position.copy(splatConfigs.splat1.position);
+    splat.rotation.x = MathUtils.degToRad(splatConfigs.splat1.rotation.x);
+    splat.rotation.y = MathUtils.degToRad(splatConfigs.splat1.rotation.y);
+    splat.rotation.z = MathUtils.degToRad(splatConfigs.splat1.rotation.z);
+    splat.scale.setScalar(splatConfigs.splat1.scale);
+    scene.add(splat);
+
+    // Create the second splat
+    let splat2 = new LumaSplatsThree({
+        source: splatConfigs.splat2.source,
+        particleRevealEnabled: true,
+        particleRevealDuration: 3.33
+    });
+    splat2.material.depthTest = true;
+    splat2.renderOrder = 999;
+    splat2.position.copy(splatConfigs.splat2.position);
+    splat2.rotation.x = MathUtils.degToRad(splatConfigs.splat2.rotation.x);
+    splat2.rotation.y = MathUtils.degToRad(splatConfigs.splat2.rotation.y);
+    splat2.rotation.z = MathUtils.degToRad(splatConfigs.splat2.rotation.z);
+    splat2.scale.setScalar(splatConfigs.splat2.scale);
+    scene.add(splat2);
+
+    const splats = {
+        splat1: splat,
+        splat2: splat2
+    };
+
+    if (developerMode) {
+        splat.visible = true;
+        splat2.visible = true;
+        document.getElementById('developerControls').style.display = 'block';
+        document.getElementById('toggleSplat1').addEventListener('click', () => {
+            splat.visible = !splat.visible;
+        });
+        document.getElementById('toggleSplat2').addEventListener('click', () => {
+            splat2.visible = !splat2.visible;
+        });
+    } else {
+        splat.visible = true;
+        splat2.visible = false;
+    }
+
+    // TapDots Logic
+    let tapDots = [];
+    const textureLoader = new TextureLoader();
+    const iconTextures = {};
+    const iconsToLoad = [
+        { name: 'info', url: 'https://raw.githubusercontent.com/HansenHomeAI/WhiteInfoIcon/main/3TestIcons-8.png' },
+        { name: 'camera', url: 'https://raw.githubusercontent.com/HansenHomeAI/WhiteCameraIcon/main/3TestIcons-9.png' },
+    ];
+
+    let iconsLoaded = 0;
+    iconsToLoad.forEach(iconData => {
+        textureLoader.load(iconData.url, (texture) => {
+            iconTextures[iconData.name] = texture;
+            iconsLoaded++;
+            if (iconsLoaded === iconsToLoad.length) {
+                tapDotConfigurations.forEach((config, index) => createTapDot(config, index));
+                animate();
+            }
+        },
+        undefined,
+        (err) => {
+            console.error(`Error loading texture: ${iconData.url}`, err);
+        });
+    });
+
+    function generateUniqueColor(index) {
+        index += 1;
+        const r = (index * 37) % 256;
+        const g = (index * 57) % 256;
+        const b = (index * 79) % 256;
+        const minComponent = 50;
+        const maxComponent = 255;
+        const range = maxComponent - minComponent;
+        const adjustComponent = (value) => Math.floor((value / 255) * range + minComponent);
+        const finalR = adjustComponent(r);
+        const finalG = adjustComponent(g);
+        const finalB = adjustComponent(b);
+        return `#${finalR.toString(16).padStart(2,'0')}${finalG.toString(16).padStart(2,'0')}${finalB.toString(16).padStart(2,'0')}`;
+    }
+
+    function createTapDot(config, index) {
+        const { position, scale, icon } = config;
+        const dotColor = generateUniqueColor(index);
+        let dotGeometry = new SphereGeometry(tapDotBaseSize, 32, 32);
+        let dotMaterial = new MeshBasicMaterial({
+            color: 0x2C2C2E,
+            transparent: true,
+            opacity: 0.7
+        });
+        let dot = new Mesh(dotGeometry, dotMaterial);
+        dot.position.set(position.x, position.y, position.z);
+        dot.scale.setScalar(scale || 1);
+        dot.visible = false;
+
+        const iconGeometry = new PlaneGeometry(iconBaseSize, iconBaseSize);
+        const iconMaterial = new MeshBasicMaterial({
+            map: iconTextures[icon],
+            transparent: true,
+            alphaTest: 0.5
+        });
+        let iconMesh = new Mesh(iconGeometry, iconMaterial);
+        iconMesh.position.copy(dot.position);
+        iconMesh.scale.setScalar(scale || 1);
+        iconMesh.visible = false;
+
+        let labelEl = null;
+        const tapDotEntry = { dot, iconMesh, color: dotColor, scale, index, config, labelEl: null };
+        if (config.caption) {
+            labelEl = document.createElement('div');
+            labelEl.className = 'tapdot-label-bubble';
+            const gradId = 'labelOutline-' + index;
+            const pathD = 'M 21 0 L 119 0 Q 140 0 140 21 Q 140 42 119 42 L 74 42 L 70 47 L 66 42 L 21 42 Q 0 42 0 21 Q 0 0 21 0 Z';
+            labelEl.innerHTML = '<svg class="tapdot-label-bg" viewBox="0 0 140 47" preserveAspectRatio="none"><defs><linearGradient id="' + gradId + '" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="rgba(255,255,255,0.4)"/><stop offset="41%" stop-color="rgba(255,255,255,0)"/><stop offset="57%" stop-color="rgba(255,255,255,0)"/><stop offset="100%" stop-color="rgba(255,255,255,0.4)"/></linearGradient></defs><path d="' + pathD + '" fill="none" stroke="url(#' + gradId + ')" stroke-width="1.4"/></svg><span class="tapdot-label-text">' + config.caption + '</span>';
+            tapDotEntry.labelEl = labelEl;
+            const labelsLayer = document.getElementById('tapdot-labels-layer');
+            if (labelsLayer) labelsLayer.appendChild(labelEl);
+        }
+
+        tapDots.push(tapDotEntry);
+        scene.add(dot);
+        scene.add(iconMesh);
+    }
+
+    const hiddenCanvas = document.createElement('canvas');
+    const hiddenContext = hiddenCanvas.getContext('2d');
+    hiddenCanvas.width = window.innerWidth;
+    hiddenCanvas.height = window.innerHeight;
+    hiddenCanvas.style.display = 'none';
+    document.body.appendChild(hiddenCanvas);
+
+    // Screen-space tap radius so hit area scales with how big the dot appears (relative to view)
+    function getTapDotScreenRadiusPx(tapDot) {
+        const worldRadius = tapDotBaseSize * (tapDot.scale || 1);
+        const distanceToCamera = camera.position.distanceTo(tapDot.dot.position);
+        const halfFovRad = (camera.fov * Math.PI / 180) / 2;
+        const projectedRadiusPx = (worldRadius / distanceToCamera) * (window.innerHeight / 2) / Math.tan(halfFovRad);
+        return Math.max(projectedRadiusPx * tapRadiusMultiplier, 12);
+    }
+
+    function renderHiddenCanvas() {
+        hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
+        tapDots.forEach((tapDot) => {
+            let screenPos = tapDot.dot.position.clone().project(camera);
+            let x = (screenPos.x + 1) / 2 * window.innerWidth;
+            let y = -(screenPos.y - 1) / 2 * window.innerHeight;
+            const screenRadiusPx = getTapDotScreenRadiusPx(tapDot);
+            hiddenContext.fillStyle = tapDot.color;
+            hiddenContext.beginPath();
+            hiddenContext.arc(x, y, screenRadiusPx, 0, 2 * Math.PI);
+            hiddenContext.fill();
+        });
+    }
+
+    // Create "Sold" hotspots (optional overlay text)
+    const soldHotspots = soldHotspotConfigurations.map((config) => createSoldHotspot(config));
+
+    function calculateMaxDistance() {
+        const aspectRatio = window.innerWidth / window.innerHeight;
+        let additionalDistance = (1 / aspectRatio) * parameters.maxDistance.responsiveness;
+        return parameters.maxDistance.base + additionalDistance;
+    }
+
+    function createBorderDot(dotData) {
+        const { name, position } = dotData;
+        let borderDotGeometry = new SphereGeometry(borderDotParams.radius, borderDotParams.widthSegments, borderDotParams.heightSegments);
+        let borderDotMaterial = new MeshBasicMaterial({ color: borderDotParams.color, transparent: true, opacity: 0 });
+        let borderDot = new Mesh(borderDotGeometry, borderDotMaterial);
+        borderDot.scale.y = 0.1;
+        borderDot.position.set(position.x, position.y, position.z);
+        borderDot.userData.borderVertexName = name;
+        scene.add(borderDot);
+        return { name, mesh: borderDot };
+    }
+
+    // ***** ONLY THIS FUNCTION CHANGED TO REMOVE LENGTH-WISE ROLL *****
+    function createBorderLineBetweenDots(dot1, dot2, lineOpacity = 0) {
+        const start = dot1.position;
+        const end = dot2.position;
+        const direction = new Vector3().subVectors(end, start);
+        const length = direction.length();
+        const midPoint = new Vector3().addVectors(start, end).multiplyScalar(0.5);
+
+        const boxThickness = borderDotParams.radius * 2;
+        const boxHeight = 0.006;
+
+        const boxGeometry = new BoxGeometry(length, boxHeight, boxThickness);
+        const boxMaterial = new MeshBasicMaterial({ color: borderDotParams.color, transparent: true, opacity: lineOpacity });
+        const box = new Mesh(boxGeometry, boxMaterial);
+
+        // We define the local X axis as the direction of the line
+        // and then fix the local Y/Z using a stable 'up' vector so we don't roll.
+        let x = direction.clone().normalize();
+        let up = new Vector3(0, 1, 0);
+
+        // If direction is nearly parallel to world up, pick a different stable up
+        if (Math.abs(x.dot(up)) > 0.9999) {
+            up = new Vector3(0, 0, 1);
+        }
+
+        let z = new Vector3().crossVectors(x, up).normalize();
+        let y = new Vector3().crossVectors(z, x).normalize();
+
+        let rotMatrix = new Matrix4();
+        // Create a rotation basis from x,y,z
+        rotMatrix.makeBasis(x, y, z);
+
+        // Position the box at the midpoint
+        let translationMatrix = new Matrix4().makeTranslation(midPoint.x, midPoint.y, midPoint.z);
+
+        box.matrixAutoUpdate = false;
+        box.matrix.multiplyMatrices(translationMatrix, rotMatrix);
+
+        scene.add(box);
+        return box;
+    }
+    // ***** END CHANGE *****
+
+    let fadeDuration = 5;
+    let borderDotDelay = 0.9;
+    let fadeStartTime = null;
+    let borderLineFadeOpacity = 0;
+    let borderDotFadeOpacity = 0;
+
+    const borderDots = {};
+    const borderLines = [];
+
+    function getScreenPositionFromWorld(worldPosition) {
+        const projected = worldPosition.clone().project(camera);
+        return {
+            x: (projected.x + 1) * 0.5 * window.innerWidth,
+            y: (1 - projected.y) * 0.5 * window.innerHeight,
+            visible: projected.z > -1 && projected.z < 1
+        };
+    }
+
+    function borderConnectionKey(startName, endName) {
+        return [startName, endName].sort().join('|');
+    }
+
+    function getConnectionIndex(startName, endName) {
+        return borderLineConnections.findIndex((connection) =>
+            (connection.start === startName && connection.end === endName) ||
+            (connection.start === endName && connection.end === startName)
+        );
+    }
+
+    function dedupeBorderConnections() {
+        const seen = new Set();
+        borderLineConnections = borderLineConnections.filter((connection) => {
+            if (!borderDots[connection.start] || !borderDots[connection.end]) return false;
+            if (connection.start === connection.end) return false;
+            const key = borderConnectionKey(connection.start, connection.end);
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+    }
+
+    function getVisibleLineOpacity() {
+        return lotEditState.active ? 1 : borderLineFadeOpacity;
+    }
+
+    function getVisibleDotOpacity() {
+        return lotEditState.active ? 1 : borderDotFadeOpacity;
+    }
+
+    function refreshBorderVisualState() {
+        const dotOpacity = getVisibleDotOpacity();
+        const selectedName = lotEditState.selectedVertexName;
+        const mergeTargetName = lotEditState.dragging.mergeTargetName;
+        Object.entries(borderDots).forEach(([name, dotMesh]) => {
+            dotMesh.material.opacity = dotOpacity;
+            dotMesh.material.color.setHex(borderDotParams.color);
+            dotMesh.scale.set(1, 0.1, 1);
+            if (lotEditState.active && name === mergeTargetName) {
+                dotMesh.material.color.setHex(0xbf281b);
+                dotMesh.scale.set(1.2, 0.12, 1.2);
+            } else if (lotEditState.active && name === selectedName) {
+                dotMesh.material.color.setHex(0xffffff);
+                dotMesh.scale.set(1.25, 0.125, 1.25);
+            }
+        });
+        const lineOpacity = getVisibleLineOpacity();
+        borderLines.forEach((lineMesh) => {
+            lineMesh.material.opacity = lineOpacity;
+            lineMesh.material.color.setHex(lotEditState.active ? 0xe8e8e8 : borderDotParams.color);
+        });
+        tapDots.forEach((tapDot) => {
+            const showDot = lotEditState.active;
+            tapDot.dot.visible = showDot;
+            tapDot.iconMesh.visible = showDot;
+            if (showDot) {
+                const baseScale = tapDot.scale || 1;
+                const selectedTapDot = lotEditState.selectedTapDot;
+                if (selectedTapDot === tapDot) {
+                    tapDot.dot.material.color.setHex(0xffffff);
+                    tapDot.dot.scale.setScalar(baseScale * 1.25);
+                } else {
+                    tapDot.dot.material.color.setHex(0x2C2C2E);
+                    tapDot.dot.scale.setScalar(baseScale);
+                }
+            }
+        });
+    }
+
+    function rebuildBorderLines() {
+        borderLines.forEach((lineMesh) => {
+            scene.remove(lineMesh);
+            lineMesh.geometry.dispose();
+            lineMesh.material.dispose();
+        });
+        borderLines.length = 0;
+        dedupeBorderConnections();
+        borderLineConnections.forEach((connection) => {
+            const startDot = borderDots[connection.start];
+            const endDot = borderDots[connection.end];
+            if (!startDot || !endDot) return;
+            const lineMesh = createBorderLineBetweenDots(startDot, endDot, getVisibleLineOpacity());
+            lineMesh.userData.borderConnection = { start: connection.start, end: connection.end };
+            borderLines.push(lineMesh);
+        });
+        refreshBorderVisualState();
+    }
+
+    function setPointerFromEvent(event) {
+        const bounds = renderer.domElement.getBoundingClientRect();
+        lotEditState.pointerNDC.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+        lotEditState.pointerNDC.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+        lotEditState.dragRaycaster.setFromCamera(lotEditState.pointerNDC, camera);
+    }
+
+    function getPointerWorldOnPlane(event, planeY) {
+        setPointerFromEvent(event);
+        lotEditState.dragPlane.constant = -planeY;
+        const intersection = new Vector3();
+        const hit = lotEditState.dragRaycaster.ray.intersectPlane(lotEditState.dragPlane, intersection);
+        return hit ? intersection : null;
+    }
+
+    function getBorderVertexHit(event) {
+        setPointerFromEvent(event);
+        const vertices = Object.values(borderDots);
+        if (!vertices.length) return null;
+        const intersections = lotEditState.dragRaycaster.intersectObjects(vertices, false);
+        if (intersections.length) return intersections[0].object;
+
+        let closestVertex = null;
+        let closestDistance = Infinity;
+        vertices.forEach((vertexMesh) => {
+            const screen = getScreenPositionFromWorld(vertexMesh.position);
+            if (!screen.visible) return;
+            const distance = Math.hypot(screen.x - event.clientX, screen.y - event.clientY);
+            if (distance < 11 && distance < closestDistance) {
+                closestDistance = distance;
+                closestVertex = vertexMesh;
+            }
+        });
+        return closestVertex;
+    }
+
+    function getTapDotHit(event) {
+        if (!tapDots.length) return null;
+        setPointerFromEvent(event);
+        const tapDotMeshes = tapDots.map((t) => t.dot);
+        const intersections = lotEditState.dragRaycaster.intersectObjects(tapDotMeshes, false);
+        if (intersections.length) {
+            const hitMesh = intersections[0].object;
+            return tapDots.find((t) => t.dot === hitMesh) || null;
+        }
+        return null;
+    }
+
+    let nextBorderVertexId = borderDotPositions.reduce((maxId, dotData) => {
+        const id = parseInt(String(dotData.name).replace('Lot_V', ''), 10);
+        return Number.isFinite(id) ? Math.max(maxId, id) : maxId;
+    }, 0) + 1;
+
+    function getNextBorderVertexName() {
+        while (borderDots[`Lot_V${nextBorderVertexId}`]) nextBorderVertexId++;
+        const newName = `Lot_V${nextBorderVertexId}`;
+        nextBorderVertexId++;
+        return newName;
+    }
+
+    borderDotPositions.forEach((dotData) => {
+        const createdDot = createBorderDot(dotData);
+        borderDots[createdDot.name] = createdDot.mesh;
+    });
+    rebuildBorderLines();
+
+    function fadeInBorders(time) {
+        if (!fadeStartTime) fadeStartTime = time;
+        let elapsedTime = (time - fadeStartTime) / 1000;
+        borderLineFadeOpacity = Math.min(elapsedTime / fadeDuration, 1);
+        let dotElapsedTime = elapsedTime - borderDotDelay;
+        borderDotFadeOpacity = Math.min(Math.max(dotElapsedTime / fadeDuration, 0), 1);
+        refreshBorderVisualState();
+        if (borderLineFadeOpacity < 1 || borderDotFadeOpacity < 1) {
+            requestAnimationFrame(fadeInBorders);
+        }
+    }
+    requestAnimationFrame(fadeInBorders);
+
+    // "Sold" hotspot creation function
+    // Identical to createHotspot except:
+    // - No sphere is created
+    // - The text color is orange (#FF4F40 here)
+    // - We add a controllable verticalOffset (config.verticalOffset)
+    function createSoldHotspot(config) {
+        const { text, position, scale, verticalOffset } = config;
+
+        // Create the text canvas (orange text, no sphere)
+        const canvas = document.createElement('canvas');
+        const context = canvas.getContext('2d');
+        canvas.width = 3072;
+        canvas.height = 512;
+        context.fillStyle = 'rgba(255, 255, 255, 0)';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.font = '520 250px "Helvetica Neue", Helvetica, Arial, sans-serif';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+        context.strokeStyle = 'rgba(0, 0, 0, 0.5)';
+        context.lineWidth = 5;
+        // Orange text fill:
+        context.fillStyle = '#BF281B';
+        context.fillText(text, canvas.width / 2, canvas.height / 2);
+        context.strokeText(text, canvas.width / 2, canvas.height / 2);
+
+        const texture = new Texture(canvas);
+        texture.needsUpdate = true;
+        const geometry = new PlaneGeometry(2.4, 0.4);
+        const material = new MeshStandardMaterial({
+            map: texture,
+            transparent: false,
+            alphaTest: 0.5,
+            side: DoubleSide,
+            premultipliedAlpha: true,
+            emissive: '#BF281B',
+            emissiveIntensity: 2,
+        });
+
+        const textPlane = new Mesh(geometry, material);
+        // Position at the same center but allow a verticalOffset
+        textPlane.position.set(position.x, position.y + (verticalOffset || 0), position.z);
+        textPlane.rotation.y = MathUtils.degToRad(90);
+        textPlane.scale.setScalar(scale);
+
+        // You can further modify geometry translation if desired, but here we keep it minimal
+        scene.add(textPlane);
+
+        // Return something if we need to track it
+        return { textPlane };
+    }
+
+    window.addEventListener('resize', function onWindowResize() {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        parameters.scene.maxDistanceFromCenter = calculateMaxDistance();
+        hiddenCanvas.width = window.innerWidth;
+        hiddenCanvas.height = window.innerHeight;
+        updateMidpointButtons();
+    });
+
+    let angle = parameters.animation.initialAngle !== undefined 
+        ? MathUtils.degToRad(parameters.animation.initialAngle) 
+        : 0;
+    let autoRotate = parameters.animation.autoRotate;
+
+    // Enhanced compass logic with icon switching
+    function getCompassRotation() {
+        const target = controls.target;
+        const cameraPos = camera.position;
+        
+        // Calculate the angle from target to camera (in XZ plane)
+        const deltaX = cameraPos.x - target.x;
+        const deltaZ = cameraPos.z - target.z;
+        
+        // Get angle in radians, then convert to degrees
+        let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+        
+        // Calculate rotation needed to point arrow to configured north direction
+        // Subtract camera bearing from north direction to get relative rotation
+        let arrowRotation = (parameters.compass.northDirection - cameraBearing + 360) % 360;
+        
+        return arrowRotation;
+    }
+
+    function updateCompassIcon() {
+        if (!compassIcon) return;
+        
+        const target = controls.target;
+        const cameraPos = camera.position;
+        
+        // Calculate the angle from target to camera (in XZ plane)
+        const deltaX = cameraPos.x - target.x;
+        const deltaZ = cameraPos.z - target.z;
+        
+        // Get camera bearing in degrees (where camera is looking FROM)
+        let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+        
+        // FIXED: Compass should rotate to always point toward north relative to camera view
+        // Try inverted rotation direction to fix the east/west issue
+        let iconRotation = (cameraBearing - parameters.compass.northDirection + 360) % 360;
+        
+        // Check if camera is pointing at north (difference between camera bearing and north direction)
+        let bearingDifference = Math.abs(cameraBearing - parameters.compass.northDirection);
+        if (bearingDifference > 180) {
+            bearingDifference = 360 - bearingDifference; // Handle wrapping around 360°
+        }
+        
+        const tolerance = 15; // Degrees tolerance for "pointing at north"
+        const isPointingAtNorth = bearingDifference <= tolerance;
+        
+        // Icon URLs
+        const outlineIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg';
+        const filledIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthFilled.svg';
+        
+        // Determine target icon: filled when pointing at north, outline otherwise
+        const targetSrc = isPointingAtNorth ? filledIcon : outlineIcon;
+        const currentSrc = compassIcon.src;
+        
+        // Switch icon if needed (check filename instead of full URL)
+        const currentFilename = currentSrc.split('/').pop();
+        const targetFilename = targetSrc.split('/').pop();
+        
+        if (currentFilename !== targetFilename) {
+            compassIcon.src = targetSrc; // Direct switch for now, no animation
+        }
+        
+        // Apply rotation - compass always points to north (77° in your case)
+        compassIcon.style.transform = `rotate(${iconRotation}deg)`;
+    }
+
+    // Smooth camera animation to face north
+    function animateCameraToNorth() {
+        if (isAnimatingToNorth) return; // Prevent multiple animations
+        
+        // Calculate target camera position to face north
+        const target = controls.target;
+        const currentRadius = camera.position.distanceTo(target);
+        
+        // Convert north direction to radians
+        const northRadians = MathUtils.degToRad(parameters.compass.northDirection);
+        
+        // Calculate target position (camera looking toward north)
+        targetCameraPosition.set(
+            target.x + Math.sin(northRadians) * currentRadius,
+            camera.position.y, // Keep same height
+            target.z + Math.cos(northRadians) * currentRadius
+        );
+        
+        // Store starting position
+        startCameraPosition.copy(camera.position);
+        
+        // Start animation
+        isAnimatingToNorth = true;
+        animationStartTime = performance.now();
+        autoRotate = false; // Disable auto-rotation during animation
+        
+    }
+
+    // Smooth easing function (ease-out cubic)
+    function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+    }
+
+    // Update camera animation in the main animation loop
+    function updateCameraAnimation() {
+        if (!isAnimatingToNorth) return;
+
+        const elapsed = performance.now() - animationStartTime;
+        const progress = Math.min(elapsed / animationDuration, 1);
+        const easedProgress = easeOutCubic(progress);
+        
+        // Interpolate camera position
+        camera.position.lerpVectors(startCameraPosition, targetCameraPosition, easedProgress);
+        
+        // Update controls target to maintain smooth interaction
+        camera.lookAt(controls.target);
+        
+        // Animation complete
+        if (progress >= 1) {
+            isAnimatingToNorth = false;
+        }
+    }
+
+    function animate() {
+        if (autoRotate) {
+        angle += parameters.animation.speed;
+        const c = parameters.animation.center;
+
+        camera.position.x = c.x + Math.sin(angle) * parameters.animation.startRadius;
+        camera.position.z = c.z + Math.cos(angle) * parameters.animation.startRadius;
+        camera.position.y = c.y + parameters.camera.startPosition.y;
+
+        camera.lookAt(controls.target);
+    }
+
+        // Make "Sold" hotspot text always face the camera
+        soldHotspots.forEach(sold => {
+            sold.textPlane.lookAt(camera.position);
+        });
+
+        tapDots.forEach(tapDot => {
+            tapDot.iconMesh.lookAt(camera.position);
+            let direction = new Vector3().subVectors(camera.position, tapDot.dot.position).normalize();
+            let tapDotRadius = tapDotBaseSize * (tapDot.scale || 1);
+            let offsetDistance = tapDotRadius + 0.02;
+            tapDot.iconMesh.position.copy(tapDot.dot.position).add(direction.multiplyScalar(offsetDistance));
+        });
+
+        // Update 2D label overlay: project to screen, depth-sort, smooth position/opacity
+        const labelsLayer = document.getElementById('tapdot-labels-layer');
+        const labelsVisible = labelsLayer && !window.isTapdotPopupOpen && !isDetailsOpen;
+        if (labelsLayer) labelsLayer.style.display = labelsVisible ? 'block' : 'none';
+        if (labelsVisible) {
+            const overlapPadding = 6;
+            const opacityLerp = 0.18;
+            const labelMaxDistance = 2.8;
+            function rectsOverlap(a, b) {
+                return !(a.right + overlapPadding <= b.left - overlapPadding ||
+                    a.left - overlapPadding >= b.right + overlapPadding ||
+                    a.bottom + overlapPadding <= b.top - overlapPadding ||
+                    a.top - overlapPadding >= b.bottom + overlapPadding);
+            }
+            const labelsData = tapDots
+                .filter(td => td.labelEl && td.config.caption)
+                .map(td => ({
+                    tapDot: td,
+                    screenPos: getScreenPositionFromWorld(td.dot.position),
+                    distance: camera.position.distanceTo(td.dot.position)
+                }))
+                .filter(d => d.screenPos.visible && d.distance <= labelMaxDistance);
+            const priorityOrder = { high: 0, medium: 1, low: 2 };
+            labelsData.sort((a, b) => {
+                const pa = priorityOrder[a.tapDot.config.priority] ?? 1;
+                const pb = priorityOrder[b.tapDot.config.priority] ?? 1;
+                if (pa !== pb) return pa - pb;
+                return a.distance - b.distance;
+            });
+            const visibleRects = [];
+            const jitterThreshold = 30;
+            const jitterLerp = 0.35;
+            const jitterLerpY = 0.18;
+            labelsData.forEach(({ tapDot, screenPos }) => {
+                const labelEl = tapDot.labelEl;
+                const rawX = screenPos.x;
+                const rawY = screenPos.y;
+                let sx = tapDot._labelX;
+                let sy = tapDot._labelY;
+                if (sx === undefined) { sx = rawX; sy = rawY; }
+                const dx = Math.abs(rawX - sx);
+                const dy = Math.abs(rawY - sy);
+                const smooth = dx < jitterThreshold && dy < jitterThreshold;
+                const x = smooth ? sx + (rawX - sx) * jitterLerp : rawX;
+                const y = smooth ? sy + (rawY - sy) * jitterLerpY : rawY;
+                tapDot._labelX = x;
+                tapDot._labelY = y;
+                labelEl.style.left = x + 'px';
+                labelEl.style.top = y + 'px';
+                const br = labelEl.getBoundingClientRect();
+                const rect = {
+                    left: br.left,
+                    right: br.right,
+                    top: br.top,
+                    bottom: br.bottom
+                };
+                const overlaps = visibleRects.some(v => rectsOverlap(rect, v));
+                const targetOpacity = overlaps ? 0 : 1;
+                let op = tapDot._labelOpacity;
+                if (op === undefined) op = targetOpacity;
+                tapDot._labelOpacity = op + (targetOpacity - op) * opacityLerp;
+                labelEl.style.opacity = tapDot._labelOpacity;
+                labelEl.style.pointerEvents = 'none';
+                if (!overlaps) visibleRects.push({ left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom });
+            });
+            const visibleTapDots = new Set(labelsData.map(d => d.tapDot));
+            tapDots.forEach(td => {
+                if (td.labelEl && !visibleTapDots.has(td)) {
+                    let op = td._labelOpacity;
+                    if (op === undefined) op = 0;
+                    td._labelOpacity = op + (0 - op) * opacityLerp;
+                    td.labelEl.style.opacity = td._labelOpacity;
+                }
+            });
+        }
+
+        // Update compass icon with smart switching and center rotation
+        updateCompassIcon();
+
+        // Update camera animation if active
+        updateCameraAnimation();
+
+        controls.update();
+        updateMidpointButtons();
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+    }
+
+    controls.addEventListener('start', () => autoRotate = false);
+    window.addEventListener('touchstart', () => autoRotate = false);
+
+    let lastPointerDownForTapDot = { x: 0, y: 0 };
+    let suppressTapDotClickUntil = 0;
+    const tapDotClickMoveThreshold = 10;
+    window.addEventListener('pointerdown', (event) => {
+        lastPointerDownForTapDot = { x: event.clientX, y: event.clientY };
+    }, { passive: true });
+
+    function handleTapDotActivation(event) {
+        if (lotEditState.suppressNextClick) {
+            lotEditState.suppressNextClick = false;
+            return true;
+        }
+        if (lotEditState.active) return;
+        if (window.isTapdotPopupOpen || isDetailsOpen) return;
+        const eventTarget = event.target;
+        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus')) return;
+        const dx = event.clientX - lastPointerDownForTapDot.x;
+        const dy = event.clientY - lastPointerDownForTapDot.y;
+        if (Math.sqrt(dx * dx + dy * dy) > tapDotClickMoveThreshold) return;
+        const x = Math.floor(event.clientX);
+        const y = Math.floor(event.clientY);
+        if (x < 0 || x >= hiddenCanvas.width || y < 0 || y >= hiddenCanvas.height) return;
+        try {
+            renderHiddenCanvas();
+            hiddenContext.getImageData(x, y, 1, 1);
+        } catch (e) { return; }
+
+        let closestDot = null;
+        let closestDistance = Infinity;
+        tapDots.forEach(tapDot => {
+            let screenPos = tapDot.dot.position.clone().project(camera);
+            let dotX = (screenPos.x + 1) / 2 * window.innerWidth;
+            let dotY = -(screenPos.y - 1) / 2 * window.innerHeight;
+            const screenRadiusPx = getTapDotScreenRadiusPx(tapDot);
+            let distance = Math.sqrt(Math.pow(dotX - x, 2) + Math.pow(dotY - y, 2));
+            if (distance < closestDistance && distance < screenRadiusPx) {
+                closestDot = tapDot;
+                closestDistance = distance;
+            }
+        });
+
+        if (closestDot) {
+            showTapDotContent(closestDot);
+            return true;
+        }
+        for (const tapDot of tapDots) {
+            if (!tapDot.labelEl || tapDot._labelOpacity === undefined || tapDot._labelOpacity < 0.01) continue;
+            const br = tapDot.labelEl.getBoundingClientRect();
+            if (x >= br.left && x <= br.right && y >= br.top && y <= br.bottom) {
+                showTapDotContent(tapDot);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    window.addEventListener('click', (event) => {
+        if (performance.now() < suppressTapDotClickUntil) return;
+        handleTapDotActivation(event);
+    });
+
+    window.addEventListener('pointerup', (event) => {
+        if (!event.isPrimary) return;
+        if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
+        const handled = handleTapDotActivation(event);
+        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+    }, { passive: true });
+
+    window.addEventListener('touchend', (event) => {
+        if ('PointerEvent' in window) return;
+        if (!event.changedTouches || !event.changedTouches.length) return;
+        const touch = event.changedTouches[0];
+        const handled = handleTapDotActivation({
+            clientX: touch.clientX,
+            clientY: touch.clientY,
+            target: event.target
+        });
+        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+    }, { passive: true });
+
+    // Start animation once icons are loaded
+    // (If no icons, we simply call animate() immediately)
+    if (iconsToLoad.length === 0) {
+        animate();
+    }
+
+    // Hart Bench Ranch UI JavaScript - Ported with Extreme Care
+    
+    const detailsButton = document.getElementById('detailsButton');
+    const fullscreenButton = document.getElementById('fullscreenButton');
+    const compassButton = document.getElementById('compassButton');
+    const compassIcon = document.getElementById('compassIcon');
+    const detailsBox = document.getElementById('detailsBox');
+    const overlayUI = document.getElementById('overlay-ui');
+    const detailsContent = document.getElementById('detailsContent');
+    const customThumb = document.getElementById('customThumb');
+    const customScrollbar = document.getElementById('customScrollbar');
+    const detailsInner = document.getElementById('detailsInner');
+    const menuContainer = document.getElementById('menuContainer');
+    const lotEditorToggle = document.getElementById('lotEditorToggle');
+    const lotEditorPanel = document.getElementById('lotEditorPanel');
+    const lotEditorStatus = document.getElementById('lotEditorStatus');
+    const lotEditorVertexName = document.getElementById('lotEditorVertexName');
+    const lotVertexXInput = document.getElementById('lotVertexXInput');
+    const lotVertexYInput = document.getElementById('lotVertexYInput');
+    const lotVertexZInput = document.getElementById('lotVertexZInput');
+    const lotCopyJsonButton = document.getElementById('lotCopyJsonButton');
+    const lotMidpointLayer = document.getElementById('lotMidpointLayer');
+    const tapDotGithubRawBase = 'https://raw.githubusercontent.com/HansenHomeAI/Red-Arrow-Ranch/main/3D%20Model%20Folders';
+
+    function resolveTapDotPhotoUrl(photoSrc) {
+        if (!photoSrc) return '';
+        if (/^(?:[a-z]+:)?\/\//i.test(photoSrc) || photoSrc.startsWith('data:') || photoSrc.startsWith('blob:')) {
+            return photoSrc;
+        }
+        const normalized = String(photoSrc).replace(/\\/g, '/').replace(/^\.?\//, '');
+        if (normalized.startsWith('3D Model Folders/')) {
+            const relativePath = normalized.slice('3D Model Folders/'.length);
+            const encodedPath = relativePath.split('/').map((segment) => encodeURIComponent(segment)).join('/');
+            return `${tapDotGithubRawBase}/${encodedPath}`;
+        }
+        try {
+            return new URL(normalized, window.location.href).href;
+        } catch (error) {
+            return normalized;
+        }
+    }
+
+    let isDetailsOpen = false;
+    let isDraggingThumb = false;
+    let dragStartY = 0;
+    let startScrollTop = 0;
+    let scrollbarFadeTimeout;
+    
+    // Camera animation variables
+    let isAnimatingToNorth = false;
+    let animationStartTime = 0;
+    let startCameraPosition = new Vector3();
+    let targetCameraPosition = new Vector3();
+    const animationDuration = 1500; // 1.5 seconds
+
+    function setLotEditorStatus(message) {
+        if (lotEditorStatus) lotEditorStatus.textContent = message;
+    }
+
+    function setLotEditorInputsEnabled(enabled) {
+        [lotVertexXInput, lotVertexYInput, lotVertexZInput].forEach((input) => {
+            if (!input) return;
+            input.disabled = !enabled;
+        });
+    }
+
+    function syncLotEditorInputsFromSelection() {
+        const selectedName = lotEditState.selectedVertexName;
+        const selectedTapDot = lotEditState.selectedTapDot;
+        if (selectedTapDot) {
+            const pos = selectedTapDot.dot.position;
+            lotEditorVertexName.textContent = `Tap dot: ${selectedTapDot.config.caption || selectedTapDot.config.icon || 'Tap dot'}`;
+            lotVertexXInput.value = pos.x.toFixed(6);
+            lotVertexYInput.value = pos.y.toFixed(6);
+            lotVertexZInput.value = pos.z.toFixed(6);
+            setLotEditorInputsEnabled(true);
+            return;
+        }
+        const selectedMesh = selectedName ? borderDots[selectedName] : null;
+        if (!selectedMesh) {
+            lotEditorVertexName.textContent = 'Vertex: none selected';
+            lotVertexXInput.value = '';
+            lotVertexYInput.value = '';
+            lotVertexZInput.value = '';
+            setLotEditorInputsEnabled(false);
+            return;
+        }
+        lotEditorVertexName.textContent = `Vertex: ${selectedName}`;
+        lotVertexXInput.value = selectedMesh.position.x.toFixed(6);
+        lotVertexYInput.value = selectedMesh.position.y.toFixed(6);
+        lotVertexZInput.value = selectedMesh.position.z.toFixed(6);
+        setLotEditorInputsEnabled(true);
+    }
+
+    function selectTapDot(tapDot) {
+        if (!tapDot) {
+            lotEditState.selectedTapDot = null;
+            syncLotEditorInputsFromSelection();
+            refreshBorderVisualState();
+            return;
+        }
+        lotEditState.selectedVertexName = null;
+        lotEditState.selectedTapDot = tapDot;
+        syncLotEditorInputsFromSelection();
+        refreshBorderVisualState();
+    }
+
+    function selectBorderVertex(vertexName) {
+        if (!vertexName || !borderDots[vertexName]) {
+            lotEditState.selectedVertexName = null;
+            lotEditState.selectedTapDot = null;
+            syncLotEditorInputsFromSelection();
+            refreshBorderVisualState();
+            return;
+        }
+        lotEditState.selectedVertexName = vertexName;
+        lotEditState.selectedTapDot = null;
+        syncLotEditorInputsFromSelection();
+        refreshBorderVisualState();
+    }
+
+    function getLotEditorTopDownHeight() {
+        const dots = Object.values(borderDots);
+        if (!dots.length) return 2.4;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minZ = Infinity;
+        let maxZ = -Infinity;
+        dots.forEach((dotMesh) => {
+            minX = Math.min(minX, dotMesh.position.x);
+            maxX = Math.max(maxX, dotMesh.position.x);
+            minZ = Math.min(minZ, dotMesh.position.z);
+            maxZ = Math.max(maxZ, dotMesh.position.z);
+        });
+        const span = Math.max(maxX - minX, maxZ - minZ, 1);
+        return Math.max(1.8, span * 2.2);
+    }
+
+    function alignCameraToLotEditorView() {
+        const target = controls.target.clone();
+        const northRadians = MathUtils.degToRad(parameters.compass.northDirection);
+        const northVector = new Vector3(Math.sin(northRadians), 0, Math.cos(northRadians)).normalize();
+        camera.position.set(target.x, target.y + getLotEditorTopDownHeight(), target.z + 0.0001);
+        camera.up.copy(northVector);
+        camera.lookAt(target);
+        controls.update();
+    }
+
+    function clearMidpointButtons() {
+        lotEditState.midpointButtons.forEach((button) => button.remove());
+        lotEditState.midpointButtons.clear();
+    }
+
+    function updateMidpointButtons() {
+        if (!lotEditState.active) {
+            clearMidpointButtons();
+            return;
+        }
+
+        const candidates = [];
+        borderLineConnections.forEach((connection) => {
+            const startDot = borderDots[connection.start];
+            const endDot = borderDots[connection.end];
+            if (!startDot || !endDot) return;
+            const startScreen = getScreenPositionFromWorld(startDot.position);
+            const endScreen = getScreenPositionFromWorld(endDot.position);
+            if (!startScreen.visible || !endScreen.visible) return;
+            const dx = endScreen.x - startScreen.x;
+            const dy = endScreen.y - startScreen.y;
+            const distance = Math.hypot(dx, dy);
+            if (distance < lotEditState.midpointMinScreenDistancePx) return;
+            candidates.push({
+                key: borderConnectionKey(connection.start, connection.end),
+                start: connection.start,
+                end: connection.end,
+                x: (startScreen.x + endScreen.x) * 0.5,
+                y: (startScreen.y + endScreen.y) * 0.5,
+                distance
+            });
+        });
+
+        candidates.sort((a, b) => b.distance - a.distance);
+        const selected = [];
+        for (const candidate of candidates) {
+            if (selected.length >= lotEditState.midpointMaxButtons) break;
+            const hasNearby = selected.some((placed) => {
+                const dx = placed.x - candidate.x;
+                const dy = placed.y - candidate.y;
+                return Math.hypot(dx, dy) < lotEditState.midpointMinSpacingPx;
+            });
+            if (!hasNearby) selected.push(candidate);
+        }
+
+        const activeKeys = new Set(selected.map((entry) => entry.key));
+        lotEditState.midpointButtons.forEach((button, key) => {
+            if (!activeKeys.has(key)) {
+                button.remove();
+                lotEditState.midpointButtons.delete(key);
+            }
+        });
+
+        selected.forEach((entry) => {
+            let button = lotEditState.midpointButtons.get(entry.key);
+            if (!button) {
+                button = document.createElement('button');
+                button.type = 'button';
+                button.className = 'lot-midpoint-plus';
+                button.textContent = '+';
+                button.addEventListener('click', (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    insertVertexAtConnection(button.dataset.start, button.dataset.end);
+                });
+                lotEditState.midpointButtons.set(entry.key, button);
+                lotMidpointLayer.appendChild(button);
+            }
+            button.dataset.start = entry.start;
+            button.dataset.end = entry.end;
+            button.style.left = `${entry.x}px`;
+            button.style.top = `${entry.y}px`;
+        });
+    }
+
+    function getConnectionCountForVertex(vertexName) {
+        return borderLineConnections.reduce((count, connection) => {
+            return count + ((connection.start === vertexName || connection.end === vertexName) ? 1 : 0);
+        }, 0);
+    }
+
+    function getSerializedBorderDotPositions() {
+        return Object.entries(borderDots)
+            .map(([name, dotMesh]) => ({
+                name,
+                position: {
+                    x: +dotMesh.position.x.toFixed(6),
+                    y: +dotMesh.position.y.toFixed(6),
+                    z: +dotMesh.position.z.toFixed(6)
+                }
+            }))
+            .sort((a, b) => {
+                const aIndex = parseInt(String(a.name).replace('Lot_V', ''), 10);
+                const bIndex = parseInt(String(b.name).replace('Lot_V', ''), 10);
+                const safeA = Number.isFinite(aIndex) ? aIndex : Number.MAX_SAFE_INTEGER;
+                const safeB = Number.isFinite(bIndex) ? bIndex : Number.MAX_SAFE_INTEGER;
+                if (safeA !== safeB) return safeA - safeB;
+                return String(a.name).localeCompare(String(b.name));
+            });
+    }
+
+    function getSerializedBorderLineConnections() {
+        dedupeBorderConnections();
+        return borderLineConnections
+            .filter((connection) => borderDots[connection.start] && borderDots[connection.end] && connection.start !== connection.end)
+            .map((connection) => ({ start: connection.start, end: connection.end }));
+    }
+
+    function getSerializedTapDotPositions() {
+        return tapDots.map((tapDot) => {
+            const pos = tapDot.dot.position;
+            const cfg = tapDot.config;
+            const item = {
+                position: {
+                    x: +pos.x.toFixed(6),
+                    y: +pos.y.toFixed(6),
+                    z: +pos.z.toFixed(6)
+                },
+                scale: cfg.scale ?? 1,
+                icon: cfg.icon || 'info'
+            };
+            if (cfg.caption) item.caption = cfg.caption;
+            if (cfg.photos && cfg.photos.length) item.photos = cfg.photos;
+            else if (cfg.photo) item.photo = cfg.photo;
+            return item;
+        });
+    }
+
+    function buildLotGeometryPayload() {
+        return {
+            borderDotPositions: getSerializedBorderDotPositions(),
+            borderLineConnections: getSerializedBorderLineConnections(),
+            tapDotPositions: getSerializedTapDotPositions(),
+            metadata: {
+                northDirection: parameters.compass.northDirection
+            }
+        };
+    }
+
+    async function copyTextToClipboard(text) {
+        if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            return true;
+        }
+
+        const tempTextarea = document.createElement('textarea');
+        tempTextarea.value = text;
+        tempTextarea.setAttribute('readonly', '');
+        tempTextarea.style.position = 'fixed';
+        tempTextarea.style.opacity = '0';
+        tempTextarea.style.pointerEvents = 'none';
+        document.body.appendChild(tempTextarea);
+        tempTextarea.focus();
+        tempTextarea.select();
+
+        let copied = false;
+        try {
+            copied = document.execCommand('copy');
+        } catch (error) {
+            copied = false;
+        }
+        document.body.removeChild(tempTextarea);
+        return copied;
+    }
+
+    function insertVertexAtConnection(startName, endName) {
+        const connectionIndex = getConnectionIndex(startName, endName);
+        if (connectionIndex < 0) return;
+        const connection = borderLineConnections[connectionIndex];
+        const startDot = borderDots[connection.start];
+        const endDot = borderDots[connection.end];
+        if (!startDot || !endDot) return;
+
+        const midpoint = new Vector3().addVectors(startDot.position, endDot.position).multiplyScalar(0.5);
+        const newVertexName = getNextBorderVertexName();
+        const createdDot = createBorderDot({
+            name: newVertexName,
+            position: { x: midpoint.x, y: midpoint.y, z: midpoint.z }
+        });
+        borderDots[newVertexName] = createdDot.mesh;
+
+        borderLineConnections.splice(
+            connectionIndex,
+            1,
+            { start: connection.start, end: newVertexName },
+            { start: newVertexName, end: connection.end }
+        );
+
+        rebuildBorderLines();
+        selectBorderVertex(newVertexName);
+        setLotEditorStatus(`Inserted ${newVertexName}. Drag to refine this segment.`);
+        updateMidpointButtons();
+    }
+
+    function getMergeTargetForDraggedVertex(draggedVertexName) {
+        const draggedDot = borderDots[draggedVertexName];
+        if (!draggedDot) return null;
+        const draggedScreen = getScreenPositionFromWorld(draggedDot.position);
+        if (!draggedScreen.visible) return null;
+
+        let closestName = null;
+        let closestDistance = Infinity;
+        Object.entries(borderDots).forEach(([candidateName, candidateDot]) => {
+            if (candidateName === draggedVertexName) return;
+            const candidateScreen = getScreenPositionFromWorld(candidateDot.position);
+            if (!candidateScreen.visible) return;
+            const distance = Math.hypot(candidateScreen.x - draggedScreen.x, candidateScreen.y - draggedScreen.y);
+            if (distance < lotEditState.mergeScreenDistancePx && distance < closestDistance) {
+                closestDistance = distance;
+                closestName = candidateName;
+            }
+        });
+        return closestName;
+    }
+
+    function mergeVertices(sourceVertexName, targetVertexName) {
+        if (!sourceVertexName || !targetVertexName || sourceVertexName === targetVertexName) return false;
+        if (!borderDots[sourceVertexName] || !borderDots[targetVertexName]) return false;
+
+        borderLineConnections = borderLineConnections.map((connection) => ({
+            start: connection.start === sourceVertexName ? targetVertexName : connection.start,
+            end: connection.end === sourceVertexName ? targetVertexName : connection.end
+        }));
+        dedupeBorderConnections();
+
+        const sourceDot = borderDots[sourceVertexName];
+        scene.remove(sourceDot);
+        sourceDot.geometry.dispose();
+        sourceDot.material.dispose();
+        delete borderDots[sourceVertexName];
+
+        rebuildBorderLines();
+        selectBorderVertex(targetVertexName);
+        setLotEditorStatus(`Merged ${sourceVertexName} into ${targetVertexName}.`);
+        updateMidpointButtons();
+        return true;
+    }
+
+    function startTapDotDragFromPotential() {
+        if (!lotEditState.potentialTapDotDrag) return;
+        const tapDot = lotEditState.potentialTapDotDrag;
+        lotEditState.draggingTapDot = tapDot;
+        lotEditState.draggingTapDotPointerId = lotEditState.potentialTapDotDragPointerId;
+        lotEditState.draggingTapDotPlaneY = tapDot.dot.position.y;
+        lotEditState.potentialTapDotDrag = null;
+        lotEditState.potentialTapDotDragPointerId = null;
+        controls.enabled = false;
+        setLotEditorStatus(`Dragging tap dot. Release to place.`);
+    }
+
+    function endTapDotDrag() {
+        if (!lotEditState.draggingTapDot) return;
+        const wasDragging = lotEditState.draggingTapDot;
+        lotEditState.draggingTapDot = null;
+        lotEditState.draggingTapDotPointerId = null;
+        controls.enabled = true;
+        selectTapDot(wasDragging);
+        if (lotEditState.active) {
+            setLotEditorStatus(`Selected tap dot: ${wasDragging.config.caption || wasDragging.config.icon || 'Tap dot'}. Edit XYZ in panel.`);
+        }
+    }
+
+    function clearPotentialTapDotDrag() {
+        if (lotEditState.potentialTapDotDrag) {
+            lotEditState.potentialTapDotDrag = null;
+            lotEditState.potentialTapDotDragPointerId = null;
+        }
+    }
+
+    function endLotVertexDrag(clearOnly = false) {
+        if (clearOnly) clearPotentialTapDotDrag();
+        if (lotEditState.draggingTapDot) {
+            endTapDotDrag();
+            return;
+        }
+        if (!lotEditState.dragging.active && !clearOnly) return;
+        lotEditState.dragging.active = false;
+        lotEditState.dragging.pointerId = null;
+        lotEditState.dragging.vertexName = null;
+        lotEditState.dragging.mergeTargetName = null;
+        lotEditState.dragging.mergeHoverStartMs = 0;
+        if (lotEditState.dragging.mergeTimerId) {
+            clearTimeout(lotEditState.dragging.mergeTimerId);
+            lotEditState.dragging.mergeTimerId = null;
+        }
+        controls.enabled = true;
+        refreshBorderVisualState();
+        if (lotEditState.active) {
+            const selectedName = lotEditState.selectedVertexName;
+            if (selectedName && borderDots[selectedName]) {
+                setLotEditorStatus(`Selected ${selectedName} (${getConnectionCountForVertex(selectedName)} connections).`);
+            } else {
+                setLotEditorStatus('Drag vertices or tap dots to reposition. Use + to insert points, hold for 1.5s to merge.');
+            }
+        }
+    }
+
+    function showTapDotContent(tapDot) {
+        if (!tapDot) return;
+        const cfg = tapDot.config;
+        if (cfg.icon === 'info') {
+            return;
+        } else {
+            const popup = document.getElementById('tapdotPopup');
+            const photoEl = document.getElementById('tapdotPopupPhoto');
+            const captionEl = document.getElementById('tapdotPopupCaption');
+            const photos = (cfg.photos || (cfg.photo ? [cfg.photo] : [])).map(resolveTapDotPhotoUrl);
+            if (popup && photoEl && captionEl) {
+                photoEl.alt = cfg.caption || '';
+                captionEl.textContent = cfg.caption || '';
+                window.tapdotCarouselPhotos = photos;
+                window.tapdotCarouselIndex = 0;
+                const carouselNav = document.getElementById('tapdotCarouselNav');
+                const dotsContainer = document.getElementById('tapdotCarouselDots');
+                if (photos.length > 1) {
+                    carouselNav.classList.remove('hidden');
+                    carouselNav.classList.add('visible');
+                    dotsContainer.innerHTML = '';
+                    for (let i = 0; i < photos.length; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = 'tapdot-carousel-dot' + (i === 0 ? ' active' : '');
+                        dot.setAttribute('data-index', i);
+                        dotsContainer.appendChild(dot);
+                    }
+                } else {
+                    carouselNav.classList.add('hidden');
+                    carouselNav.classList.remove('visible');
+                    dotsContainer.innerHTML = '';
+                }
+                const firstSrc = photos[0] || '';
+                const spinnerEl = document.getElementById('tapdotPhotoSpinner');
+                popup.style.width = '';
+                popup.style.height = '';
+                document.getElementById('overlay-ui').classList.add('active');
+                window.isTapdotPopupOpen = true;
+                const showPopup = () => {
+                    popup.classList.add('show');
+                };
+                if (firstSrc) {
+                    popup.style.width = 'min(90vw, 800px)';
+                    popup.style.height = 'min(85vh, 600px)';
+                    requestAnimationFrame(() => requestAnimationFrame(showPopup));
+                    if (spinnerEl) spinnerEl.classList.add('visible');
+                    photoEl.src = '';
+                    const img = new Image();
+                    const hideSpinner = () => {
+                        if (spinnerEl) spinnerEl.classList.remove('visible');
+                    };
+                    img.onload = () => {
+                        hideSpinner();
+                        const maxW = window.innerWidth - 48;
+                        const maxH = window.innerHeight - 80;
+                        let w = img.naturalWidth;
+                        let h = img.naturalHeight;
+                        if (w > maxW || h > maxH) {
+                            const r = Math.min(maxW / w, maxH / h);
+                            w = Math.round(w * r);
+                            h = Math.round(h * r);
+                        }
+                        popup.style.width = w + 'px';
+                        popup.style.height = h + 'px';
+                        photoEl.src = firstSrc;
+                    };
+                    img.onerror = hideSpinner;
+                    img.src = firstSrc;
+                    if (img.complete) img.onload();
+                } else {
+                    if (spinnerEl) spinnerEl.classList.remove('visible');
+                    photoEl.src = '';
+                    popup.style.width = 'min(90vw, 800px)';
+                    popup.style.height = 'min(85vh, 600px)';
+                    requestAnimationFrame(() => requestAnimationFrame(showPopup));
+                }
+            }
+        }
+    }
+
+    function beginTapDotDrag(event) {
+        if (!lotEditState.active) return false;
+        if (event.button !== undefined && event.button !== 0) return false;
+        const hitTapDot = getTapDotHit(event);
+        if (!hitTapDot) return false;
+
+        const now = performance.now();
+        if (now - lotEditState.lastTapDotPointerDownTime < 400 && lotEditState.lastTapDotPointerDownTarget === hitTapDot) {
+            lotEditState.lastTapDotPointerDownTime = 0;
+            lotEditState.lastTapDotPointerDownTarget = null;
+            return false;
+        }
+        lotEditState.lastTapDotPointerDownTime = now;
+        lotEditState.lastTapDotPointerDownTarget = hitTapDot;
+
+        lotEditState.potentialTapDotDrag = hitTapDot;
+        lotEditState.potentialTapDotDragPointerId = event.pointerId;
+        lotEditState.suppressNextClick = true;
+        setLotEditorStatus(`Tap to select, drag to move.`);
+        if (renderer.domElement.setPointerCapture) {
+            renderer.domElement.setPointerCapture(event.pointerId);
+        }
+        return true;
+    }
+
+    function beginLotVertexDrag(event) {
+        if (!lotEditState.active) return false;
+        if (event.button !== undefined && event.button !== 0) return false;
+        const hitVertex = getBorderVertexHit(event);
+        if (!hitVertex || !hitVertex.userData.borderVertexName) return false;
+
+        const vertexName = hitVertex.userData.borderVertexName;
+        selectBorderVertex(vertexName);
+        lotEditState.dragging.active = true;
+        lotEditState.dragging.pointerId = event.pointerId;
+        lotEditState.dragging.vertexName = vertexName;
+        lotEditState.dragging.planeY = hitVertex.position.y;
+        lotEditState.dragging.mergeTargetName = null;
+        lotEditState.dragging.mergeHoverStartMs = 0;
+        lotEditState.dragging.mergeTimerId = null;
+        lotEditState.suppressNextClick = true;
+        controls.enabled = false;
+        setLotEditorStatus(`Dragging ${vertexName}. Hold over another vertex for 1.5s to merge.`);
+        refreshBorderVisualState();
+        if (renderer.domElement.setPointerCapture) {
+            renderer.domElement.setPointerCapture(event.pointerId);
+        }
+        return true;
+    }
+
+    function updateTapDotDrag(event) {
+        if (!lotEditState.draggingTapDot) return;
+        if (event.pointerId !== lotEditState.draggingTapDotPointerId) return;
+
+        const tapDot = lotEditState.draggingTapDot;
+        const pointOnPlane = getPointerWorldOnPlane(event, lotEditState.draggingTapDotPlaneY);
+        if (!pointOnPlane) return;
+        tapDot.dot.position.x = pointOnPlane.x;
+        tapDot.dot.position.y = lotEditState.draggingTapDotPlaneY;
+        tapDot.dot.position.z = pointOnPlane.z;
+        if (tapDot.config.position) {
+            tapDot.config.position.x = pointOnPlane.x;
+            tapDot.config.position.y = lotEditState.draggingTapDotPlaneY;
+            tapDot.config.position.z = pointOnPlane.z;
+        }
+    }
+
+    function updateLotVertexDrag(event) {
+        if (lotEditState.draggingTapDot) {
+            updateTapDotDrag(event);
+            return;
+        }
+        if (!lotEditState.dragging.active) return;
+        if (event.pointerId !== lotEditState.dragging.pointerId) return;
+
+        const vertexName = lotEditState.dragging.vertexName;
+        const vertexDot = borderDots[vertexName];
+        if (!vertexDot) {
+            endLotVertexDrag(true);
+            return;
+        }
+
+        const pointOnPlane = getPointerWorldOnPlane(event, lotEditState.dragging.planeY);
+        if (!pointOnPlane) return;
+        vertexDot.position.x = pointOnPlane.x;
+        vertexDot.position.y = lotEditState.dragging.planeY;
+        vertexDot.position.z = pointOnPlane.z;
+        rebuildBorderLines();
+        syncLotEditorInputsFromSelection();
+        updateMidpointButtons();
+
+        const mergeTargetName = getMergeTargetForDraggedVertex(vertexName);
+        if (mergeTargetName !== lotEditState.dragging.mergeTargetName) {
+            if (lotEditState.dragging.mergeTimerId) {
+                clearTimeout(lotEditState.dragging.mergeTimerId);
+                lotEditState.dragging.mergeTimerId = null;
+            }
+            lotEditState.dragging.mergeTargetName = mergeTargetName;
+            lotEditState.dragging.mergeHoverStartMs = mergeTargetName ? performance.now() : 0;
+            if (mergeTargetName) {
+                setLotEditorStatus(`Hold to merge ${vertexName} into ${mergeTargetName}...`);
+                const sourceVertex = vertexName;
+                const targetVertex = mergeTargetName;
+                lotEditState.dragging.mergeTimerId = setTimeout(() => {
+                    if (!lotEditState.dragging.active) return;
+                    if (lotEditState.dragging.vertexName !== sourceVertex) return;
+                    if (lotEditState.dragging.mergeTargetName !== targetVertex) return;
+                    const merged = mergeVertices(sourceVertex, targetVertex);
+                    endLotVertexDrag(true);
+                    if (merged) {
+                        setLotEditorStatus(`Merged ${sourceVertex} into ${targetVertex}.`);
+                    }
+                }, lotEditState.mergeHoldMs);
+            } else {
+                setLotEditorStatus(`Dragging ${vertexName}. Hold over another vertex for 1.5s to merge.`);
+            }
+            refreshBorderVisualState();
+            return;
+        }
+    }
+
+    function setLotEditMode(enabled) {
+        if (enabled === lotEditState.active) return;
+
+        lotEditState.active = enabled;
+        lotEditorToggle.classList.toggle('active', enabled);
+        lotEditorToggle.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+        lotEditorPanel.classList.toggle('active', enabled);
+
+        if (enabled) {
+            lotEditState.cameraSnapshot = {
+                position: camera.position.clone(),
+                target: controls.target.clone(),
+                up: camera.up.clone(),
+                controlsEnabled: controls.enabled,
+                controlsRotateEnabled: controls.enableRotate,
+                autoRotate
+            };
+            autoRotate = false;
+            isAnimatingToNorth = false;
+            if (lotEditState.selectedTapDot) {
+                syncLotEditorInputsFromSelection();
+            } else if (!lotEditState.selectedVertexName || !borderDots[lotEditState.selectedVertexName]) {
+                selectBorderVertex(Object.keys(borderDots)[0] || null);
+            } else {
+                syncLotEditorInputsFromSelection();
+            }
+            setLotEditorStatus('Drag vertices or tap dots to reposition. Use + to insert points, hold for 1.5s to merge.');
+            refreshBorderVisualState();
+            updateMidpointButtons();
+            return;
+        }
+
+        clearMidpointButtons();
+        endLotVertexDrag(true);
+        const snapshot = lotEditState.cameraSnapshot;
+        if (snapshot) {
+            camera.position.copy(snapshot.position);
+            controls.target.copy(snapshot.target);
+            camera.up.copy(snapshot.up);
+            controls.enabled = snapshot.controlsEnabled;
+            controls.enableRotate = snapshot.controlsRotateEnabled;
+            autoRotate = snapshot.autoRotate;
+            controls.update();
+        } else {
+            controls.enableRotate = true;
+            controls.enabled = true;
+        }
+        setLotEditorStatus('Enable mode, then drag vertices or tap dots to adjust positions.');
+        refreshBorderVisualState();
+    }
+
+    function updateSelectedCoordinate(axis, value) {
+        if (!Number.isFinite(value)) return;
+        const selectedTapDot = lotEditState.selectedTapDot;
+        if (selectedTapDot) {
+            selectedTapDot.dot.position[axis] = value;
+            if (selectedTapDot.config.position) {
+                selectedTapDot.config.position[axis] = value;
+            }
+            if (axis === 'y') {
+                lotEditState.draggingTapDotPlaneY = value;
+            }
+            syncLotEditorInputsFromSelection();
+            setLotEditorStatus(`Updated tap dot ${selectedTapDot.config.caption || ''}.`);
+            return;
+        }
+        const selectedName = lotEditState.selectedVertexName;
+        if (!selectedName || !borderDots[selectedName]) return;
+        borderDots[selectedName].position[axis] = value;
+        if (axis === 'y') {
+            lotEditState.dragging.planeY = value;
+        }
+        rebuildBorderLines();
+        syncLotEditorInputsFromSelection();
+        setLotEditorStatus(`Updated ${selectedName} (${getConnectionCountForVertex(selectedName)} connections).`);
+        updateMidpointButtons();
+    }
+
+    renderer.domElement.addEventListener('pointerdown', (event) => {
+        if (!lotEditState.active) return;
+        let started = beginLotVertexDrag(event);
+        if (!started) started = beginTapDotDrag(event);
+        if (started) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }, { passive: false, capture: true });
+
+    renderer.domElement.addEventListener('dblclick', (event) => {
+        if (!lotEditState.active) return;
+        const hitTapDot = getTapDotHit(event);
+        if (hitTapDot) {
+            showTapDotContent(hitTapDot);
+            event.preventDefault();
+            event.stopPropagation();
+        }
+    }, { passive: false, capture: true });
+
+    window.addEventListener('pointermove', (event) => {
+        if (lotEditState.potentialTapDotDrag && event.pointerId === lotEditState.potentialTapDotDragPointerId) {
+            startTapDotDragFromPotential();
+        }
+        if (!lotEditState.dragging.active && !lotEditState.draggingTapDot) return;
+        updateLotVertexDrag(event);
+        event.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('pointerup', (event) => {
+        if (lotEditState.potentialTapDotDrag && event.pointerId === lotEditState.potentialTapDotDragPointerId) {
+            selectTapDot(lotEditState.potentialTapDotDrag);
+            clearPotentialTapDotDrag();
+            event.preventDefault();
+            return;
+        }
+        if (lotEditState.draggingTapDot) {
+            if (event.pointerId === lotEditState.draggingTapDotPointerId) endLotVertexDrag();
+            return;
+        }
+        if (!lotEditState.dragging.active) return;
+        if (event.pointerId !== lotEditState.dragging.pointerId) return;
+        endLotVertexDrag();
+        event.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('pointercancel', () => {
+        clearPotentialTapDotDrag();
+        endLotVertexDrag(true);
+    }, { passive: true });
+
+    if (lotEditorToggle) {
+        lotEditorToggle.addEventListener('click', () => {
+            setLotEditMode(!lotEditState.active);
+        });
+    }
+
+    lotVertexXInput.addEventListener('input', () => updateSelectedCoordinate('x', parseFloat(lotVertexXInput.value)));
+    lotVertexYInput.addEventListener('input', () => updateSelectedCoordinate('y', parseFloat(lotVertexYInput.value)));
+    lotVertexZInput.addEventListener('input', () => updateSelectedCoordinate('z', parseFloat(lotVertexZInput.value)));
+    lotCopyJsonButton.addEventListener('click', async () => {
+        const payload = buildLotGeometryPayload();
+        const jsonText = JSON.stringify(payload, null, 2);
+        lotEditState.lastExportJson = jsonText;
+        window.__lotExportJson = jsonText;
+        window.__lotExportPayload = payload;
+        try {
+            const copied = await copyTextToClipboard(jsonText);
+            if (copied) {
+                const parts = [`${payload.borderDotPositions.length} vertices`, `${payload.borderLineConnections.length} connections`];
+                if (payload.tapDotPositions && payload.tapDotPositions.length) {
+                    parts.push(`${payload.tapDotPositions.length} tap dots`);
+                }
+                setLotEditorStatus(`Copied ${parts.join(', ')}.`);
+                return;
+            }
+        } catch (error) {
+            // Fall through to prompt fallback.
+        }
+
+        try {
+            window.prompt('Copy your lot JSON', jsonText);
+            setLotEditorStatus(`JSON ready (${payload.borderDotPositions.length} vertices, ${payload.borderLineConnections.length} connections).`);
+        } catch (error) {
+            setLotEditorStatus('Unable to copy automatically. Clipboard blocked.');
+        }
+    });
+    syncLotEditorInputsFromSelection();
+
+    // Original base spacing and sizes:
+    const baseMenuLeft = 20;
+    const baseMenuBottom = 20;
+    const baseDetailsTop = 60;
+    const baseDetailsBottom = 60;
+    const baseDetailsLeft = 20;
+    const baseDetailsRight = 20;
+
+    // Original font sizes:
+    const baseH1 = 30;
+    const baseP = 17;
+    const baseDisclaimer = 10;
+
+    // Original details-inner padding:
+    const basePaddingTopBottom = 40;
+    const basePaddingLeftRight = 30;
+
+    // Original menu-container dimensions, padding, and gap (for scaling):
+    const baseMenuWidth = 105;
+    const baseMenuHeight = 59;
+    const baseMenuPadding = 7;
+    const baseMenuGap = 1;
+    const baseMenuBorderRadius = 30;
+    const baseButtonWidth = 45;
+    const baseButtonHeight = 45;
+
+    function applyLayoutMode() {
+        const ratio = window.innerWidth / window.innerHeight;
+        let mode;
+        if (ratio > 4/3) {
+            mode = 'desktop';
+        } else if (ratio >= 3/4 && ratio <= 4/3) {
+            mode = 'tablet';
+        } else {
+            mode = 'mobile';
+        }
+
+        let menuLeft = baseMenuLeft;
+        let menuBottom = baseMenuBottom;
+        let detailsTop = baseDetailsTop;
+        let detailsBottom = baseDetailsBottom;
+        let detailsLeft = baseDetailsLeft;
+        let detailsRight = baseDetailsRight;
+        let scaleFactor = 1.0;
+        let h1Size = baseH1;
+        let pSize = baseP;
+        let disclaimerSize = baseDisclaimer;
+        let innerPaddingTopBottom = basePaddingTopBottom;
+        let innerPaddingLeftRight = basePaddingLeftRight;
+
+        if (mode === 'desktop') {
+            menuLeft += 20; 
+            menuBottom += 20;
+            detailsLeft += 20;
+            detailsRight += 20;
+            detailsTop += 20;
+            detailsBottom += 20;
+        } else if (mode === 'tablet') {
+            scaleFactor = 0.9;
+            h1Size = Math.round(baseH1 * 0.9);
+            pSize = Math.round(baseP * 0.9);
+            disclaimerSize = Math.round(baseDisclaimer * 0.9);
+        } else {
+            // Mobile
+            menuLeft = baseMenuLeft - 5;
+            menuBottom = baseMenuBottom - 5;
+            detailsLeft = baseDetailsLeft - 5;
+            detailsRight = baseDetailsRight - 5;
+            detailsTop = baseDetailsTop - 5;
+            detailsBottom = baseDetailsBottom - 10;
+            scaleFactor = 0.8;
+            h1Size = Math.round(baseH1 * 0.8);
+            pSize = Math.round(baseP * 0.8);
+            disclaimerSize = Math.round(baseDisclaimer * 0.8);
+            innerPaddingTopBottom = basePaddingTopBottom - 7;
+            innerPaddingLeftRight = basePaddingLeftRight - 15;
+        }
+
+        menuContainer.style.bottom = menuBottom + 'px';
+        menuContainer.style.left = menuLeft + 'px';
+
+        menuContainer.style.webkitTransform = 'scale(' + scaleFactor + ')';
+        menuContainer.style.transform = 'scale(' + scaleFactor + ')';
+
+        detailsBox.style.top = detailsTop + 'px';
+        detailsBox.style.bottom = detailsBottom + 'px';
+        detailsBox.style.left = detailsLeft + 'px';
+        detailsBox.style.right = detailsRight + 'px';
+        detailsBox.style.maxHeight = '';
+
+        const h1s = detailsBox.querySelectorAll('h1');
+        h1s.forEach(h => { h.style.fontSize = h1Size + 'px'; });
+
+        const ps = detailsBox.querySelectorAll('p');
+        ps.forEach(pElem => { pElem.style.fontSize = pSize + 'px'; });
+
+        const disclaimers = detailsBox.querySelectorAll('.legal-disclaimer');
+        disclaimers.forEach(d => { d.style.fontSize = disclaimerSize + 'px'; });
+
+        detailsInner.style.padding = innerPaddingTopBottom + 'px ' + innerPaddingLeftRight + 'px';
+    }
+
+    function animateIconChange(imgElement, newSrc) {
+        imgElement.style.animation = 'none';
+        imgElement.offsetHeight;
+        imgElement.style.webkitAnimation = 'shrinkIcon 0.1s ease forwards';
+        imgElement.style.animation = 'shrinkIcon 0.1s ease forwards';
+
+        function handleShrink(e) {
+            if (e.animationName === 'shrinkIcon') {
+                if (newSrc) imgElement.src = newSrc;
+                imgElement.style.animation = 'none';
+                imgElement.style.webkitAnimation = 'none';
+                imgElement.offsetHeight; 
+                imgElement.style.webkitAnimation = 'expandIcon 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                imgElement.style.animation = 'expandIcon 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+            } else if (e.animationName === 'expandIcon') {
+                imgElement.removeEventListener('animationend', handleShrink);
+                imgElement.removeEventListener('webkitAnimationEnd', handleShrink);
+            }
+        }
+
+        imgElement.addEventListener('animationend', handleShrink);
+        imgElement.addEventListener('webkitAnimationEnd', handleShrink);
+    }
+
+    function openDetails() {
+        isDetailsOpen = true;
+        detailsBox.classList.add('show');
+        animateIconChange(detailsButton.querySelector('img'), 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/Close2IconDefault.svg');
+        overlayUI.classList.add('active');
+        updateScrollbar();
+    }
+
+    function closeDetails() {
+        isDetailsOpen = false;
+        detailsBox.classList.remove('show');
+        animateIconChange(detailsButton.querySelector('img'), 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg');
+        overlayUI.classList.remove('active');
+    }
+
+    detailsButton.addEventListener('click', () => {
+        const img = detailsButton.querySelector('img');
+        if (isDetailsOpen) {
+            animateIconChange(img, 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/DetailsIconDefault.svg');
+            closeDetails();
+        } else {
+            animateIconChange(img, 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/Close2IconDefault.svg');
+            openDetails();
+        }
+    });
+
+    // Add click listener for compass button
+    compassButton.addEventListener('click', () => {
+        animateCameraToNorth();
+    });
+
+    fullscreenButton.addEventListener('click', async () => {
+        const img = fullscreenButton.querySelector('img');
+        let newSrc;
+        if (document.fullscreenElement) {
+            await document.exitFullscreen().catch(() => {});
+            newSrc = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg';
+        } else {
+            try {
+                await document.documentElement.requestFullscreen();
+                newSrc = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/MinimizeIconDefault.svg';
+            } catch (err) {
+                console.error(`Error: ${err.message} (${err.name})`);
+                newSrc = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg';
+            }
+        }
+        animateIconChange(img, newSrc);
+    });
+
+    function updateFullscreenIcon() {
+        const img = fullscreenButton.querySelector('img');
+        if (document.fullscreenElement) {
+            animateIconChange(img, 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/MinimizeIconDefault.svg');
+        } else {
+            animateIconChange(img, 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/FullScreenIconDefault.svg');
+        }
+    }
+
+    document.addEventListener('fullscreenchange', updateFullscreenIcon);
+
+    window.isTapdotPopupOpen = false;
+    window.tapdotCarouselPhotos = [];
+    window.tapdotCarouselIndex = 0;
+    const tapdotPopup = document.getElementById('tapdotPopup');
+    const tapdotPopupClose = document.getElementById('tapdotPopupClose');
+
+    function closeTapdotPopup() {
+        if (!tapdotPopup) return;
+        window.isTapdotPopupOpen = false;
+        tapdotPopup.classList.remove('show');
+        if (!isDetailsOpen) overlayUI.classList.remove('active');
+        const spinner = document.getElementById('tapdotPhotoSpinner');
+        if (spinner) spinner.classList.remove('visible');
+        setTimeout(() => {
+            tapdotPopup.style.width = '';
+            tapdotPopup.style.height = '';
+        }, 320);
+    }
+
+    function tapdotCarouselGoTo(idx) {
+        const photos = window.tapdotCarouselPhotos;
+        if (!photos || photos.length < 2 || idx < 0 || idx >= photos.length) return;
+        window.tapdotCarouselIndex = idx;
+        const photoEl = document.getElementById('tapdotPopupPhoto');
+        const spinnerEl = document.getElementById('tapdotPhotoSpinner');
+        const dots = document.querySelectorAll('.tapdot-carousel-dot');
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        if (photoEl) {
+            photoEl.classList.add('fade');
+            const newSrc = photos[idx];
+            if (spinnerEl) spinnerEl.classList.add('visible');
+            const img = new Image();
+            const hideSpinner = () => {
+                if (spinnerEl) spinnerEl.classList.remove('visible');
+            };
+            img.onload = () => {
+                hideSpinner();
+                photoEl.src = newSrc;
+                requestAnimationFrame(() => { photoEl.classList.remove('fade'); });
+            };
+            img.onerror = hideSpinner;
+            img.src = newSrc;
+            if (img.complete) img.onload();
+        }
+    }
+
+    function tapdotCarouselNav(direction) {
+        const photos = window.tapdotCarouselPhotos;
+        if (!photos || photos.length < 2) return;
+        let idx = (window.tapdotCarouselIndex + direction + photos.length) % photos.length;
+        tapdotCarouselGoTo(idx);
+    }
+
+    if (tapdotPopupClose) {
+        tapdotPopupClose.addEventListener('click', () => closeTapdotPopup());
+    }
+    const tapdotCarouselPrev = document.getElementById('tapdotCarouselPrev');
+    const tapdotCarouselNext = document.getElementById('tapdotCarouselNext');
+    const tapdotCarouselDots = document.getElementById('tapdotCarouselDots');
+    const tapdotPopupPhoto = document.getElementById('tapdotPopupPhoto');
+    if (tapdotCarouselPrev) tapdotCarouselPrev.addEventListener('click', (e) => { e.stopPropagation(); tapdotCarouselNav(-1); });
+    if (tapdotCarouselNext) tapdotCarouselNext.addEventListener('click', (e) => { e.stopPropagation(); tapdotCarouselNav(1); });
+    if (tapdotPopupPhoto) tapdotPopupPhoto.addEventListener('click', (e) => { e.stopPropagation(); tapdotCarouselNav(1); });
+    if (tapdotCarouselDots) {
+        tapdotCarouselDots.addEventListener('click', (e) => {
+            const dot = e.target.closest('.tapdot-carousel-dot');
+            if (dot) { e.stopPropagation(); tapdotCarouselGoTo(parseInt(dot.getAttribute('data-index'), 10)); }
+        });
+    }
+
+    let tapdotSwipeStartX = 0;
+    const tapdotSwipeThreshold = 50;
+    tapdotPopup.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1 && window.tapdotCarouselPhotos && window.tapdotCarouselPhotos.length > 1) {
+            tapdotSwipeStartX = e.touches[0].clientX;
+        }
+    }, { passive: true });
+    tapdotPopup.addEventListener('touchend', (e) => {
+        if (e.changedTouches.length === 1 && window.tapdotCarouselPhotos && window.tapdotCarouselPhotos.length > 1) {
+            const delta = e.changedTouches[0].clientX - tapdotSwipeStartX;
+            if (delta < -tapdotSwipeThreshold) tapdotCarouselNav(1);
+            else if (delta > tapdotSwipeThreshold) tapdotCarouselNav(-1);
+        }
+    }, { passive: true });
+
+    overlayUI.addEventListener('click', () => {
+        if (isDetailsOpen) {
+            closeDetails();
+        }
+        if (window.isTapdotPopupOpen) {
+            closeTapdotPopup();
+        }
+    });
+
+    function updateScrollbar() {
+        const contentHeight = detailsContent.scrollHeight;
+        const visibleHeight = detailsContent.clientHeight;
+        const detailsBoxRect = detailsBox.getBoundingClientRect();
+        
+        const topMargin = 30;
+        const bottomMargin = 30;
+        const trackHeight = detailsBoxRect.height - (topMargin + bottomMargin); 
+        const thumbHeight = Math.max((visibleHeight / contentHeight) * trackHeight, 20);
+        customThumb.style.height = thumbHeight + 'px';
+
+        const scrollRatio = (detailsContent.scrollTop / (contentHeight - visibleHeight)) || 0;
+        const thumbMaxY = trackHeight - thumbHeight;
+        const thumbY = topMargin + thumbMaxY * scrollRatio;
+        customThumb.style.top = thumbY + 'px';
+    }
+
+    detailsContent.addEventListener('scroll', () => {
+        updateScrollbar();
+        showScrollbar();
+    });
+
+    customThumb.addEventListener('mousedown', (e) => {
+        isDraggingThumb = true;
+        dragStartY = e.clientY;
+        startScrollTop = detailsContent.scrollTop;
+        document.addEventListener('mousemove', onThumbDrag);
+        document.addEventListener('mouseup', onThumbRelease);
+        e.preventDefault();
+    });
+
+    function onThumbDrag(e) {
+        if (!isDraggingThumb) return;
+        const topMargin = 30;
+        const bottomMargin = 30;
+        const detailsBoxRect = detailsBox.getBoundingClientRect();
+        const trackHeight = detailsBoxRect.height - (topMargin + bottomMargin);
+        const contentHeight = detailsContent.scrollHeight;
+        const visibleHeight = detailsContent.clientHeight;
+
+        const deltaY = e.clientY - dragStartY;
+        const thumbHeight = parseFloat(customThumb.style.height);
+        const thumbMaxY = trackHeight - thumbHeight;
+        const scrollable = contentHeight - visibleHeight;
+        const scrollRatio = scrollable / thumbMaxY;
+
+        detailsContent.scrollTop = startScrollTop + deltaY * scrollRatio;
+        updateScrollbar();
+        showScrollbar();
+    }
+
+    function onThumbRelease() {
+        isDraggingThumb = false;
+        document.removeEventListener('mousemove', onThumbDrag);
+        document.removeEventListener('mouseup', onThumbRelease);
+        fadeOutScrollbarLater();
+    }
+
+    detailsBox.addEventListener('mousemove', (e) => {
+        const detailsBoxRect = detailsBox.getBoundingClientRect();
+        const distanceFromRight = detailsBoxRect.right - e.clientX;
+        if (distanceFromRight < 30) {
+            showScrollbar();
+        } else {
+            fadeOutScrollbarLater();
+        }
+    });
+
+    function showScrollbar() {
+        customScrollbar.style.opacity = '1';
+        fadeOutScrollbarLater();
+    }
+
+    function fadeOutScrollbarLater() {
+        if (scrollbarFadeTimeout) clearTimeout(scrollbarFadeTimeout);
+        scrollbarFadeTimeout = setTimeout(() => {
+            if (!isDraggingThumb) {
+                customScrollbar.style.opacity = '0';
+            }
+        }, 1500);
+    }
+
+    customScrollbar.style.opacity = '0';
+
+    // Detect if the device is touch-capable
+    const isTouchDevice = ('ontouchstart' in window || navigator.maxTouchPoints > 0);
+
+    // If it's a touch device, disable custom scrollbar and revert to native scrollbar
+    if (isTouchDevice) {
+        // Hide the custom scrollbar entirely
+        customScrollbar.style.display = 'none';
+        
+        // Remove the "no visible scrollbar" styles so that native scrollbar can appear
+        detailsContent.classList.add('touch-scrollbars');
+        // Also ensure overflow is set to auto to allow native scrolling
+        detailsContent.style.overflowY = 'auto';
+    }
+
+    // Handle hover circle for touch devices: add/remove 'active' on touchstart/touchend
+    document.querySelectorAll('.menu-button').forEach(btn => {
+        btn.addEventListener('touchstart', () => {
+            btn.classList.add('active');
+        }, {passive: true});
+
+        btn.addEventListener('touchend', () => {
+            btn.classList.remove('active');
+        }, {passive: true});
+
+        btn.addEventListener('touchcancel', () => {
+            btn.classList.remove('active');
+        }, {passive: true});
+    });
+
+    // Handle hover circle for fullscreen button in details box
+    if (fullscreenButton) {
+        fullscreenButton.addEventListener('touchstart', () => {
+            fullscreenButton.classList.add('active');
+        }, {passive: true});
+
+        fullscreenButton.addEventListener('touchend', () => {
+            fullscreenButton.classList.remove('active');
+        }, {passive: true});
+
+        fullscreenButton.addEventListener('touchcancel', () => {
+            fullscreenButton.classList.remove('active');
+        }, {passive: true});
+    }
+
+    // Apply layout mode on load and on resize
+    window.addEventListener('resize', applyLayoutMode);
+    window.addEventListener('load', () => {
+        applyLayoutMode();
+        updateScrollbar();
+    });
+
+    // Initialize layout mode
+    applyLayoutMode();
+    
+    </script>
+</body>
+</html>
