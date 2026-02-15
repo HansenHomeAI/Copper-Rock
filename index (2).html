@@ -1150,7 +1150,7 @@
     <script type="module">
     import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane } from 'three';
 
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { MapControls } from 'three/addons/controls/MapControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
 
     function isChrome() {
@@ -1347,16 +1347,22 @@
     let camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, parameters.camera.maxZoomOut);
     camera.position.set(parameters.camera.startPosition.x, parameters.camera.startPosition.y, parameters.camera.startPosition.z);
 
-    let controls = new OrbitControls(camera, renderer.domElement);
+    let controls = new MapControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-
-    // (2) Halved the zoom sensitivity
-    controls.zoomSpeed = 0.5;
+    controls.zoomSpeed = 0.7;
+    controls.panSpeed = 1.0;
+    controls.rotateSpeed = 0.6;
+    controls.screenSpacePanning = false;
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = MathUtils.degToRad(85);
+    if ('zoomToCursor' in controls) {
+        controls.zoomToCursor = true;
+    }
 
 	// ←– Shoot the target at your origin
 	controls.target.set(0, 0, 0);
-	controls.update();  // make OrbitControls re-sync to that new target
+	controls.update();  // make controls re-sync to that new target
 
     let sceneCenter = new Vector3(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
 
