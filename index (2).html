@@ -1460,20 +1460,98 @@
     controls.enablePan = true;
     controls.enableRotate = true;
     controls.screenSpacePanning = false;
-    controls.zoomSpeed = 0.75;
-    controls.panSpeed = 1.08;
-    controls.rotateSpeed = 0.8;
+    controls.zoomSpeed = 0.7;
+    controls.panSpeed = 1.0;
+    controls.rotateSpeed = 0.6;
     controls.mouseButtons.LEFT = MOUSE.PAN;
     controls.mouseButtons.MIDDLE = MOUSE.DOLLY;
     controls.mouseButtons.RIGHT = MOUSE.ROTATE;
     controls.touches.ONE = TOUCH.PAN;
     controls.touches.TWO = TOUCH.DOLLY_ROTATE;
-    controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
     controls.minDistance = 0.6;
     controls.maxDistance = calculateMaxDistance();
-    controls.minPolarAngle = MathUtils.degToRad(14);
-    controls.maxPolarAngle = MathUtils.degToRad(84);
+    controls.minPolarAngle = 0;
+    controls.maxPolarAngle = MathUtils.degToRad(85);
+    if ('zoomToCursor' in controls) {
+        controls.zoomToCursor = true;
+    }
+    controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
     controls.update();
+
+    let sceneCenter = new Vector3(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
+
+    controls.addEventListener('change', () => {
+        // Restrict camera Y minimum
+        if (camera.position.y < parameters.camera.minY) {
+            camera.position.y += (parameters.camera.minY - camera.position.y) * parameters.rebound.speed;
+        }
+
+        // Restrict target movement on X and Z axes with elastic rebound
+        const clampRebound = (current, min, max) => {
+            let clamped = Math.min(Math.max(current, min), max);
+            return clamped + (current - clamped) * parameters.rebound.elasticity;
+        };
+        controls.target.x = clampRebound(controls.target.x, -parameters.scene.targetLimit.x, parameters.scene.targetLimit.x);
+        controls.target.y = parameters.scene.origin.y; // Set target Y limit
+        controls.target.z = clampRebound(controls.target.z, -parameters.scene.targetLimit.z, parameters.scene.targetLimit.z);
+
+        // Restrict camera distance from the scene center
+        const maxDistance = calculateMaxDistance();  // Get the updated max distance
+        if (camera.position.distanceTo(sceneCenter) > maxDistance) {
+            let direction = new Vector3().subVectors(camera.position, sceneCenter).normalize();
+            camera.position.copy(direction.multiplyScalar(maxDistance).add(sceneCenter));
+        }
+
+        // Clamp camera to minDistance
+        const minDistCenter = new Vector3(
+            parameters.minDistance.center.x, 
+            parameters.minDistance.center.y, 
+            parameters.minDistance.center.z
+        );
+        if (camera.position.distanceTo(minDistCenter) < parameters.minDistance.radius) {
+            let direction = new Vector3().subVectors(camera.position, minDistCenter).normalize();
+            camera.position.copy(direction.multiplyScalar(parameters.minDistance.radius).add(minDistCenter));
+        }
+
+        // Zone-based splat toggling
+        if (!developerMode) {
+            let cameraInZone = false;
+
+            for (let zone of zoneConfigurations) {
+                let zoneCenter = new Vector3(zone.center.x, zone.center.y, zone.center.z);
+                let distanceToZone = camera.position.distanceTo(zoneCenter);
+
+                if (distanceToZone <= zone.radius) {
+                    cameraInZone = true;
+                    // Turn the "new" splats on immediately
+                    for (let splatName of zone.splatsOn) {
+                        if (splats[splatName] && !splats[splatName].visible) {
+                            splats[splatName].visible = true;
+                        }
+                    }
+                    // Turn the "old" splats off after 30ms delay
+                    for (let splatName of zone.splatsOff) {
+                        if (splats[splatName] && splats[splatName].visible) {
+                            setTimeout(() => {
+                                splats[splatName].visible = false;
+                            }, 15);
+                        }
+                    }
+                    break; // Assuming only one zone is active at a time
+                }
+            }
+
+            if (!cameraInZone) {
+                // Set default splat visibility when not in any zone
+                splats.splat1.visible = true;
+                if (splats.splat2.visible) {
+                    setTimeout(() => {
+                        splats.splat2.visible = false;
+                    }, 15);
+                }
+            }
+        }
+    });
 
     // Developer mode toggle
     const developerMode = parameters.developerMode;
