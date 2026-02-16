@@ -367,6 +367,12 @@
             -webkit-box-sizing: border-box;
             -moz-box-sizing: border-box;
         }
+        .hole-nav-button:disabled,
+        .hole-label-button:disabled {
+            opacity: 0.4;
+            cursor: default;
+            pointer-events: none;
+        }
 
         .hole-nav-button {
             width: 45px;
@@ -1434,15 +1440,15 @@
             <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
         </div>
         <div id="holeCarousel" class="hole-carousel" role="group" aria-label="Hole selector">
-            <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole">
+            <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M14.5 18.5L8 12l6.5-6.5"></path>
                 </svg>
             </button>
-            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Cycle holes">
-                <span id="holeLabelText">Hole 1</span>
+            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Hole 15" disabled>
+                <span id="holeLabelText">Hole 15</span>
             </button>
-            <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole">
+            <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole" disabled>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9.5 5.5L16 12l-6.5 6.5"></path>
                 </svg>
@@ -1504,7 +1510,7 @@
             <div class="lot-editor-title">Splat Transform</div>
             <button id="splatEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close">×</button>
         </div>
-        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 1</div>
+        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 15</div>
         <div class="lot-editor-grid splat-editor-grid">
             <div class="lot-editor-field">
                 <label for="splatPosX">Pos X</label>
@@ -2178,11 +2184,10 @@
     function updateHoleCarouselLabel() {
         const holeLabelText = document.getElementById('holeLabelText');
         const holeLabelButton = document.getElementById('holeLabelButton');
-        const activeConfig = getActiveHoleConfig();
-        if (!activeConfig || !holeLabelText) return;
-        holeLabelText.textContent = activeConfig.label;
+        if (!holeLabelText) return;
+        holeLabelText.textContent = 'Hole 15';
         if (holeLabelButton) {
-            holeLabelButton.setAttribute('aria-label', `${activeConfig.label} selected. Tap to cycle.`);
+            holeLabelButton.setAttribute('aria-label', 'Hole 15');
         }
     }
 
@@ -2208,15 +2213,22 @@
     }
 
     function cycleHole(direction) {
-        setActiveHole(activeHoleIndex + direction, { resetCamera: true });
+        // Hole switching disabled for now – single hole (Hole 15) only
     }
 
     controls.addEventListener('change', () => {
-        const activeConfig = getActiveHoleConfig();
-        const targetY = activeConfig && activeConfig.view && activeConfig.view.target
-            ? activeConfig.view.target.y
-            : parameters.scene.origin.y;
-        controls.target.y = targetY;
+        if (typeof tapFocusTransition !== 'undefined' && tapFocusTransition.active) return;
+        const preserveLookTargetY = (
+            (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled) ||
+            (typeof manualFocusTargetY === 'number' && Number.isFinite(manualFocusTargetY))
+        );
+        if (!preserveLookTargetY) {
+            const activeConfig = getActiveHoleConfig();
+            const targetY = activeConfig && activeConfig.view && activeConfig.view.target
+                ? activeConfig.view.target.y
+                : parameters.scene.origin.y;
+            controls.target.y = targetY;
+        }
         // Min Y boundary handled in animate loop with spring bounce
     });
 
@@ -3588,17 +3600,23 @@
         return false;
     }
 
+    function wasTapAtSameSpot(event) {
+        const dx = event.clientX - lastPointerDownForTapDot.x;
+        const dy = event.clientY - lastPointerDownForTapDot.y;
+        return Math.sqrt(dx * dx + dy * dy) <= tapDotClickMoveThreshold;
+    }
+
     window.addEventListener('click', (event) => {
         if (performance.now() < suppressTapDotClickUntil) return;
         const handledTapDot = handleTapDotActivation(event);
-        if (!handledTapDot) focusCameraOnTappedPoint(event);
+        if (!handledTapDot && wasTapAtSameSpot(event)) focusCameraOnTappedPoint(event);
     });
 
     window.addEventListener('pointerup', (event) => {
         if (!event.isPrimary) return;
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
         const handledTapDot = handleTapDotActivation(event);
-        const focused = handledTapDot ? false : focusCameraOnTappedPoint(event);
+        const focused = handledTapDot ? false : (wasTapAtSameSpot(event) && focusCameraOnTappedPoint(event));
         if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
@@ -3612,7 +3630,7 @@
             target: event.target
         };
         const handledTapDot = handleTapDotActivation(syntheticTapEvent);
-        const focused = handledTapDot ? false : focusCameraOnTappedPoint(syntheticTapEvent);
+        const focused = handledTapDot ? false : (wasTapAtSameSpot(syntheticTapEvent) && focusCameraOnTappedPoint(syntheticTapEvent));
         if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
@@ -4053,7 +4071,7 @@
         if (splatRotY) splatRotY.value = rot.y;
         if (splatRotZ) splatRotZ.value = rot.z;
         if (splatScale) splatScale.value = scaleVal;
-        if (splatEditorStatus) splatEditorStatus.textContent = `Editing: ${config.label}`;
+        if (splatEditorStatus) splatEditorStatus.textContent = 'Editing: Hole 15';
     }
 
     function applySplatEditorToConfig() {
