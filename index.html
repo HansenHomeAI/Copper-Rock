@@ -1440,15 +1440,15 @@
             <img id="compassIcon" src="https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg" alt="Compass" draggable="false">
         </div>
         <div id="holeCarousel" class="hole-carousel" role="group" aria-label="Hole selector">
-            <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole" disabled>
+            <button id="holePrevButton" class="hole-nav-button" type="button" aria-label="Previous hole">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M14.5 18.5L8 12l6.5-6.5"></path>
                 </svg>
             </button>
-            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Hole 15" disabled>
-                <span id="holeLabelText">Hole 15</span>
+            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Hole 1">
+                <span id="holeLabelText">Hole 1</span>
             </button>
-            <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole" disabled>
+            <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M9.5 5.5L16 12l-6.5 6.5"></path>
                 </svg>
@@ -1510,7 +1510,7 @@
             <div class="lot-editor-title">Splat Transform</div>
             <button id="splatEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close">×</button>
         </div>
-        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 15</div>
+        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 1</div>
         <div class="lot-editor-grid splat-editor-grid">
             <div class="lot-editor-field">
                 <label for="splatPosX">Pos X</label>
@@ -1781,65 +1781,84 @@
 
     // TapDots: info icons (No Photos) = label pops up above; camera icons = photo popup with caption
     // Camera icons use photos[] array for carousel; add more paths to include more images per location
+    // Per-hole: each hole has its own tap dots (no cross-referencing between holes)
     const tapDotsConfig = { visible: true };  // Tap dot title overlay enabled
-    const tapDotConfigurations = [
-        // Info icon - caption = label; enable Lot Line Editing to drag and reposition
-        { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 15', priority: 'low' },
+    const tapDotConfigurationsByHole = [
+        // Hole 1
+        [
+            { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 1', priority: 'low' },
+        ],
+        // Hole 2
+        [],
+        // Hole 3
+        [],
+        // Hole 4
+        [],
     ];
 
     // Tap detection: scale with visual size (so hit area matches apparent dot size)
     const tapRadiusMultiplier = 1.6; // Hit area = visible dot radius * this (slightly larger for easier tap)
 
-    // Centralized control section for BorderDots and BorderLines (lot lines slope: y=-0.07 at max Z, y=-0.16 at min Z, delta 0.09)
-    // Vertices trace: outer property boundary + internal parcel divisions (NW 8.56, NE 8.56, South 19.44 acres)
-    const borderDotPositions = [
-        { name: 'Lot_V1', position: { x: 0.619899, y: -0.07236, z: 0.910146 } },
-        { name: 'Lot_V4', position: { x: 0.613988, y: -0.12955, z: -0.646242 } },
-        { name: 'Lot_V5', position: { x: 0.432838, y: -0.1341, z: -0.769965 } },
-        { name: 'Lot_V6', position: { x: 0.356929, y: -0.13712, z: -0.852191 } },
-        { name: 'Lot_V7', position: { x: 0.134329, y: -0.139, z: -0.90331 } },
-        { name: 'Lot_V8', position: { x: 0.047765, y: -0.14156, z: -0.972969 } },
-        { name: 'Lot_V9', position: { x: -0.858899, y: -0.15415, z: -1.315852 } },
-        { name: 'Lot_V10', position: { x: -0.903571, y: -0.15539, z: -1.3497 } },
-        { name: 'Lot_V11', position: { x: -1.743049, y: -0.152, z: -1.527306 } },
-        { name: 'Lot_V12', position: { x: -1.877436, y: -0.105, z: -0.181094 } },
-        { name: 'Lot_V13', position: { x: -1.830478, y: -0.06, z: 0.921714 } },
-        { name: 'Lot_V15', position: { x: -0.851375, y: -0.12134, z: -0.344962 } },
-        { name: 'Lot_V16', position: { x: -0.860571, y: -0.07236, z: 0.910337 } },
-        { name: 'Lot_V18', position: { x: 0.608931, y: -0.09746, z: 0.230155 } },
-        { name: 'Lot_V19', position: { x: -0.907887, y: -0.15727, z: -1.432879 } },
-        { name: 'Lot_V20', position: { x: -0.970607, y: -0.1613, z: -1.52137 } },
-        { name: 'Lot_V21', position: { x: 0.480793, y: -0.09984, z: 0.164791 } },
-        { name: 'Lot_V22', position: { x: -0.208798, y: -0.14321, z: -1.079954 } },
-        { name: 'Lot_V23', position: { x: -0.68705, y: -0.15194, z: -1.24425 } },
-        { name: 'Lot_V24', position: { x: -0.520112, y: -0.14624, z: -1.139954 } },
-        { name: 'Lot_V25', position: { x: -0.140558, y: -0.14154, z: -1.024829 } }
+    // Centralized control section for BorderDots and BorderLines (lot lines)
+    // Per-hole: each hole has its own lot lines (no cross-referencing between holes)
+    const borderDotPositionsByHole = [
+        // Hole 1
+        [
+            { name: 'Lot_V1', position: { x: 0.619899, y: -0.07236, z: 0.910146 } },
+            { name: 'Lot_V4', position: { x: 0.613988, y: -0.12955, z: -0.646242 } },
+            { name: 'Lot_V5', position: { x: 0.432838, y: -0.1341, z: -0.769965 } },
+            { name: 'Lot_V6', position: { x: 0.356929, y: -0.13712, z: -0.852191 } },
+            { name: 'Lot_V7', position: { x: 0.134329, y: -0.139, z: -0.90331 } },
+            { name: 'Lot_V8', position: { x: 0.047765, y: -0.14156, z: -0.972969 } },
+            { name: 'Lot_V9', position: { x: -0.858899, y: -0.15415, z: -1.315852 } },
+            { name: 'Lot_V10', position: { x: -0.903571, y: -0.15539, z: -1.3497 } },
+            { name: 'Lot_V11', position: { x: -1.743049, y: -0.152, z: -1.527306 } },
+            { name: 'Lot_V12', position: { x: -1.877436, y: -0.105, z: -0.181094 } },
+            { name: 'Lot_V13', position: { x: -1.830478, y: -0.06, z: 0.921714 } },
+            { name: 'Lot_V15', position: { x: -0.851375, y: -0.12134, z: -0.344962 } },
+            { name: 'Lot_V16', position: { x: -0.860571, y: -0.07236, z: 0.910337 } },
+            { name: 'Lot_V18', position: { x: 0.608931, y: -0.09746, z: 0.230155 } },
+            { name: 'Lot_V19', position: { x: -0.907887, y: -0.15727, z: -1.432879 } },
+            { name: 'Lot_V20', position: { x: -0.970607, y: -0.1613, z: -1.52137 } },
+            { name: 'Lot_V21', position: { x: 0.480793, y: -0.09984, z: 0.164791 } },
+            { name: 'Lot_V22', position: { x: -0.208798, y: -0.14321, z: -1.079954 } },
+            { name: 'Lot_V23', position: { x: -0.68705, y: -0.15194, z: -1.24425 } },
+            { name: 'Lot_V24', position: { x: -0.520112, y: -0.14624, z: -1.139954 } },
+            { name: 'Lot_V25', position: { x: -0.140558, y: -0.14154, z: -1.024829 } }
+        ],
+        // Hole 2, 3, 4 - empty for now
+        [], [], []
     ];
 
-    let borderLineConnections = [
-        { start: 'Lot_V1', end: 'Lot_V18' },
-        { start: 'Lot_V18', end: 'Lot_V4' },
-        { start: 'Lot_V4', end: 'Lot_V5' },
-        { start: 'Lot_V5', end: 'Lot_V6' },
-        { start: 'Lot_V6', end: 'Lot_V7' },
-        { start: 'Lot_V7', end: 'Lot_V8' },
-        { start: 'Lot_V8', end: 'Lot_V25' },
-        { start: 'Lot_V25', end: 'Lot_V22' },
-        { start: 'Lot_V22', end: 'Lot_V24' },
-        { start: 'Lot_V24', end: 'Lot_V23' },
-        { start: 'Lot_V23', end: 'Lot_V9' },
-        { start: 'Lot_V9', end: 'Lot_V10' },
-        { start: 'Lot_V10', end: 'Lot_V19' },
-        { start: 'Lot_V19', end: 'Lot_V20' },
-        { start: 'Lot_V20', end: 'Lot_V11' },
-        { start: 'Lot_V11', end: 'Lot_V12' },
-        { start: 'Lot_V12', end: 'Lot_V13' },
-        { start: 'Lot_V13', end: 'Lot_V16' },
-        { start: 'Lot_V16', end: 'Lot_V1' },
-        { start: 'Lot_V16', end: 'Lot_V15' },
-        { start: 'Lot_V15', end: 'Lot_V9' },
-        { start: 'Lot_V18', end: 'Lot_V21' },
-        { start: 'Lot_V21', end: 'Lot_V15' }
+    const borderLineConnectionsByHole = [
+        // Hole 1
+        [
+            { start: 'Lot_V1', end: 'Lot_V18' },
+            { start: 'Lot_V18', end: 'Lot_V4' },
+            { start: 'Lot_V4', end: 'Lot_V5' },
+            { start: 'Lot_V5', end: 'Lot_V6' },
+            { start: 'Lot_V6', end: 'Lot_V7' },
+            { start: 'Lot_V7', end: 'Lot_V8' },
+            { start: 'Lot_V8', end: 'Lot_V25' },
+            { start: 'Lot_V25', end: 'Lot_V22' },
+            { start: 'Lot_V22', end: 'Lot_V24' },
+            { start: 'Lot_V24', end: 'Lot_V23' },
+            { start: 'Lot_V23', end: 'Lot_V9' },
+            { start: 'Lot_V9', end: 'Lot_V10' },
+            { start: 'Lot_V10', end: 'Lot_V19' },
+            { start: 'Lot_V19', end: 'Lot_V20' },
+            { start: 'Lot_V20', end: 'Lot_V11' },
+            { start: 'Lot_V11', end: 'Lot_V12' },
+            { start: 'Lot_V12', end: 'Lot_V13' },
+            { start: 'Lot_V13', end: 'Lot_V16' },
+            { start: 'Lot_V16', end: 'Lot_V1' },
+            { start: 'Lot_V16', end: 'Lot_V15' },
+            { start: 'Lot_V15', end: 'Lot_V9' },
+            { start: 'Lot_V18', end: 'Lot_V21' },
+            { start: 'Lot_V21', end: 'Lot_V15' }
+        ],
+        // Hole 2, 3, 4 - empty
+        [], [], []
     ];
 
     // Lot lines visibility: independent (always shown) or tied to specific holes/splats
@@ -2187,10 +2206,20 @@
         const holeLabelText = document.getElementById('holeLabelText');
         const holeLabelButton = document.getElementById('holeLabelButton');
         if (!holeLabelText) return;
-        holeLabelText.textContent = 'Hole 15';
+        const config = getActiveHoleConfig();
+        const label = config ? config.label : 'Hole 1';
+        holeLabelText.textContent = label;
         if (holeLabelButton) {
-            holeLabelButton.setAttribute('aria-label', 'Hole 15');
+            holeLabelButton.setAttribute('aria-label', label);
         }
+    }
+
+    function updateHoleCarouselButtons() {
+        const prevBtn = document.getElementById('holePrevButton');
+        const nextBtn = document.getElementById('holeNextButton');
+        const total = holeConfigurations.length;
+        if (prevBtn) prevBtn.disabled = total <= 1;
+        if (nextBtn) nextBtn.disabled = total <= 1;
     }
 
     function setActiveHole(nextIndex, options = {}) {
@@ -2206,16 +2235,22 @@
             if (!holeSplat) return;
             holeSplat.visible = index === activeHoleIndex;
         });
+        borderDots = borderDotsByHole[activeHoleIndex] || {};
+        borderLines = borderLinesByHole[activeHoleIndex] || [];
+        borderLineConnections = borderLineConnectionsByHole[activeHoleIndex] || [];
         applyHoleSplatTransform(nextSplat, nextConfig);
         applyHoleView(nextConfig, resetCamera);
         applyHoleAnimation(nextConfig);
         updateHoleCarouselLabel();
+        updateHoleCarouselButtons();
         if (typeof refreshBorderVisualState === 'function') refreshBorderVisualState();
         if (typeof syncSplatEditorFromConfig === 'function') syncSplatEditorFromConfig();
     }
 
     function cycleHole(direction) {
-        // Hole switching disabled for now – single hole (Hole 15) only
+        if (!holeConfigurations.length) return;
+        const nextIndex = activeHoleIndex + direction;
+        setActiveHole(nextIndex);
     }
 
     controls.addEventListener('change', () => {
@@ -2260,7 +2295,18 @@
 
     let iconsLoaded = 0;
     function onIconsReady() {
-        tapDotConfigurations.forEach((config, index) => createTapDot(config, index));
+        const configs = tapDotConfigurationsByHole || [];
+        let globalIndex = 0;
+        for (let holeIdx = 0; holeIdx < configs.length; holeIdx++) {
+            const holeConfigs = configs[holeIdx] || [];
+            holeConfigs.forEach((config) => {
+                createTapDot(config, globalIndex++, holeIdx);
+            });
+        }
+    }
+
+    function getActiveTapDots() {
+        return tapDots.filter((td) => td.holeIndex === activeHoleIndex);
     }
     iconsToLoad.forEach(iconData => {
         textureLoader.load(iconData.url, (texture) => {
@@ -2295,7 +2341,7 @@
         return `#${finalR.toString(16).padStart(2,'0')}${finalG.toString(16).padStart(2,'0')}${finalB.toString(16).padStart(2,'0')}`;
     }
 
-    function createTapDot(config, index) {
+    function createTapDot(config, index, holeIndex) {
         const { position, scale, icon } = config;
         const dotColor = generateUniqueColor(index);
         let dotGeometry = new SphereGeometry(tapDotBaseSize, 32, 32);
@@ -2321,7 +2367,7 @@
         iconMesh.visible = false;
 
         let labelEl = null;
-        const tapDotEntry = { dot, iconMesh, color: dotColor, scale, index, config, labelEl: null };
+        const tapDotEntry = { dot, iconMesh, color: dotColor, scale, index, holeIndex: holeIndex ?? 0, config, labelEl: null };
         if (config.caption) {
             labelEl = document.createElement('div');
             labelEl.className = 'tapdot-label-bubble';
@@ -2663,7 +2709,7 @@
 
     function renderHiddenCanvas() {
         hiddenContext.clearRect(0, 0, hiddenCanvas.width, hiddenCanvas.height);
-        tapDots.forEach((tapDot) => {
+        getActiveTapDots().forEach((tapDot) => {
             let screenPos = tapDot.dot.position.clone().project(camera);
             let x = (screenPos.x + 1) / 2 * window.innerWidth;
             let y = -(screenPos.y - 1) / 2 * window.innerHeight;
@@ -2745,8 +2791,10 @@
     let borderLineFadeOpacity = 0;
     let borderDotFadeOpacity = 0;
 
-    const borderDots = {};
-    const borderLines = [];
+    let borderDots = {};
+    let borderLines = [];
+    const borderDotsByHole = [];
+    const borderLinesByHole = [];
 
     function getScreenPositionFromWorld(worldPosition) {
         const projected = worldPosition.clone().project(camera);
@@ -2761,23 +2809,25 @@
         return [startName, endName].sort().join('|');
     }
 
-    function getConnectionIndex(startName, endName) {
-        return borderLineConnections.findIndex((connection) =>
+    function getConnectionIndex(connections, dots, startName, endName) {
+        return connections.findIndex((connection) =>
             (connection.start === startName && connection.end === endName) ||
             (connection.start === endName && connection.end === startName)
         );
     }
 
-    function dedupeBorderConnections() {
+    function dedupeBorderConnections(connections, dots) {
         const seen = new Set();
-        borderLineConnections = borderLineConnections.filter((connection) => {
-            if (!borderDots[connection.start] || !borderDots[connection.end]) return false;
+        const filtered = connections.filter((connection) => {
+            if (!dots[connection.start] || !dots[connection.end]) return false;
             if (connection.start === connection.end) return false;
             const key = borderConnectionKey(connection.start, connection.end);
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
         });
+        connections.length = 0;
+        connections.push(...filtered);
     }
 
     function getVisibleLineOpacity() {
@@ -2814,7 +2864,7 @@
             lineMesh.material.opacity = lineOpacity;
             lineMesh.material.color.setHex(lotEditState.active ? 0xe8e8e8 : borderDotParams.color);
         });
-        tapDots.forEach((tapDot) => {
+        getActiveTapDots().forEach((tapDot) => {
             const showDot = tapDotsConfig.visible !== false && lotEditState.active;
             tapDot.dot.visible = showDot;
             tapDot.iconMesh.visible = showDot;
@@ -2832,22 +2882,26 @@
         });
     }
 
-    function rebuildBorderLines() {
-        borderLines.forEach((lineMesh) => {
+    function rebuildBorderLinesForHole(dots, connections, linesArray) {
+        linesArray.forEach((lineMesh) => {
             scene.remove(lineMesh);
             lineMesh.geometry.dispose();
             lineMesh.material.dispose();
         });
-        borderLines.length = 0;
-        dedupeBorderConnections();
-        borderLineConnections.forEach((connection) => {
-            const startDot = borderDots[connection.start];
-            const endDot = borderDots[connection.end];
+        linesArray.length = 0;
+        dedupeBorderConnections(connections, dots);
+        connections.forEach((connection) => {
+            const startDot = dots[connection.start];
+            const endDot = dots[connection.end];
             if (!startDot || !endDot) return;
             const lineMesh = createBorderLineBetweenDots(startDot, endDot, getVisibleLineOpacity());
             lineMesh.userData.borderConnection = { start: connection.start, end: connection.end };
-            borderLines.push(lineMesh);
+            linesArray.push(lineMesh);
         });
+    }
+
+    function rebuildBorderLines() {
+        rebuildBorderLinesForHole(borderDots, borderLineConnections, borderLines);
         refreshBorderVisualState();
     }
 
@@ -2888,21 +2942,28 @@
     }
 
     function getTapDotHit(event) {
-        if (!tapDots.length) return null;
+        const active = getActiveTapDots();
+        if (!active.length) return null;
         setPointerFromEvent(event);
-        const tapDotMeshes = tapDots.map((t) => t.dot);
+        const tapDotMeshes = active.map((t) => t.dot);
         const intersections = lotEditState.dragRaycaster.intersectObjects(tapDotMeshes, false);
         if (intersections.length) {
             const hitMesh = intersections[0].object;
-            return tapDots.find((t) => t.dot === hitMesh) || null;
+            return active.find((t) => t.dot === hitMesh) || null;
         }
         return null;
     }
 
-    let nextBorderVertexId = borderDotPositions.reduce((maxId, dotData) => {
-        const id = parseInt(String(dotData.name).replace('Lot_V', ''), 10);
-        return Number.isFinite(id) ? Math.max(maxId, id) : maxId;
-    }, 0) + 1;
+    let borderLineConnections = [];
+    const numHolesForBorders = Math.max(borderDotPositionsByHole?.length || 0, borderLineConnectionsByHole?.length || 0, 1);
+    let nextBorderVertexId = 1;
+    for (let hi = 0; hi < numHolesForBorders; hi++) {
+        const positions = borderDotPositionsByHole[hi] || [];
+        nextBorderVertexId = Math.max(nextBorderVertexId, positions.reduce((maxId, dotData) => {
+            const id = parseInt(String(dotData.name).replace('Lot_V', ''), 10);
+            return Number.isFinite(id) ? Math.max(maxId, id) : maxId;
+        }, 0) + 1);
+    }
 
     function getNextBorderVertexName() {
         while (borderDots[`Lot_V${nextBorderVertexId}`]) nextBorderVertexId++;
@@ -2911,11 +2972,22 @@
         return newName;
     }
 
-    borderDotPositions.forEach((dotData) => {
-        const createdDot = createBorderDot(dotData);
-        borderDots[createdDot.name] = createdDot.mesh;
-    });
-    rebuildBorderLines();
+    for (let holeIdx = 0; holeIdx < numHolesForBorders; holeIdx++) {
+        const positions = borderDotPositionsByHole[holeIdx] || [];
+        const connections = borderLineConnectionsByHole[holeIdx] || [];
+        const holeDots = {};
+        const holeLines = [];
+        positions.forEach((dotData) => {
+            const createdDot = createBorderDot(dotData);
+            holeDots[createdDot.name] = createdDot.mesh;
+        });
+        borderDotsByHole[holeIdx] = holeDots;
+        borderLinesByHole[holeIdx] = holeLines;
+        rebuildBorderLinesForHole(holeDots, connections, holeLines);
+    }
+    borderDots = borderDotsByHole[0] || {};
+    borderLines = borderLinesByHole[0] || [];
+    borderLineConnections = borderLineConnectionsByHole[0] || [];
 
     function fadeInBorders(time) {
         if (!fadeStartTime) fadeStartTime = time;
@@ -3279,8 +3351,9 @@
         if (viewTarget && Number.isFinite(viewTarget.x)) {
             return { x: viewTarget.x, y: viewTarget.y ?? parameters.scene.origin.y, z: viewTarget.z ?? parameters.scene.origin.z };
         }
-        if (tapDots && tapDots.length > 0) {
-            const pos = tapDots[0].dot.position;
+        const activeTapDots = getActiveTapDots();
+        if (activeTapDots && activeTapDots.length > 0) {
+            const pos = activeTapDots[0].dot.position;
             return { x: pos.x, y: pos.y, z: pos.z };
         }
         return { ...parameters.scene.origin };
@@ -3420,7 +3493,7 @@
             sold.textPlane.lookAt(camera.position);
         });
 
-        tapDots.forEach(tapDot => {
+        getActiveTapDots().forEach(tapDot => {
             tapDot.iconMesh.lookAt(camera.position);
             let direction = new Vector3().subVectors(camera.position, tapDot.dot.position).normalize();
             let tapDotRadius = tapDotBaseSize * (tapDot.scale || 1);
@@ -3442,7 +3515,7 @@
                     a.bottom + overlapPadding <= b.top - overlapPadding ||
                     a.top - overlapPadding >= b.bottom + overlapPadding);
             }
-            const labelsData = tapDots
+            const labelsData = getActiveTapDots()
                 .filter(td => td.labelEl && td.config.caption)
                 .map(td => ({
                     tapDot: td,
@@ -3502,7 +3575,7 @@
                 if (!overlaps) visibleRects.push({ left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom });
             });
             const visibleTapDots = new Set(labelsData.map(d => d.tapDot));
-            tapDots.forEach(td => {
+            getActiveTapDots().forEach(td => {
                 if (td.labelEl && !visibleTapDots.has(td)) {
                     let op = td._labelOpacity;
                     if (op === undefined) op = 0;
@@ -3605,7 +3678,7 @@
 
         let closestDot = null;
         let closestDistance = Infinity;
-        tapDots.forEach(tapDot => {
+        getActiveTapDots().forEach(tapDot => {
             if (!hasVisibleLabel(tapDot)) return;
             let screenPos = tapDot.dot.position.clone().project(camera);
             let dotX = (screenPos.x + 1) / 2 * window.innerWidth;
@@ -3622,7 +3695,7 @@
             showTapDotContent(closestDot);
             return true;
         }
-        for (const tapDot of tapDots) {
+        for (const tapDot of getActiveTapDots()) {
             if (!tapDot.labelEl || tapDot._labelOpacity === undefined || tapDot._labelOpacity < 0.01) continue;
             const br = tapDot.labelEl.getBoundingClientRect();
             if (x >= br.left && x <= br.right && y >= br.top && y <= br.bottom) {
@@ -4122,7 +4195,7 @@
         if (splatRotY) splatRotY.value = rot.y;
         if (splatRotZ) splatRotZ.value = rot.z;
         if (splatScale) splatScale.value = scaleVal;
-        if (splatEditorStatus) splatEditorStatus.textContent = 'Editing: Hole 15';
+        if (splatEditorStatus) splatEditorStatus.textContent = 'Editing: ' + (getActiveHoleConfig()?.label || 'Hole 1');
     }
 
     function applySplatEditorToConfig() {
@@ -4361,14 +4434,14 @@
     }
 
     function getSerializedBorderLineConnections() {
-        dedupeBorderConnections();
+        dedupeBorderConnections(borderLineConnections, borderDots);
         return borderLineConnections
             .filter((connection) => borderDots[connection.start] && borderDots[connection.end] && connection.start !== connection.end)
             .map((connection) => ({ start: connection.start, end: connection.end }));
     }
 
     function getSerializedTapDotPositions() {
-        return tapDots.map((tapDot) => {
+        return getActiveTapDots().map((tapDot) => {
             const pos = tapDot.dot.position;
             const cfg = tapDot.config;
             const item = {
@@ -4425,7 +4498,7 @@
     }
 
     function insertVertexAtConnection(startName, endName) {
-        const connectionIndex = getConnectionIndex(startName, endName);
+        const connectionIndex = getConnectionIndex(borderLineConnections, borderDots, startName, endName);
         if (connectionIndex < 0) return;
         const connection = borderLineConnections[connectionIndex];
         const startDot = borderDots[connection.start];
@@ -4478,11 +4551,13 @@
         if (!sourceVertexName || !targetVertexName || sourceVertexName === targetVertexName) return false;
         if (!borderDots[sourceVertexName] || !borderDots[targetVertexName]) return false;
 
-        borderLineConnections = borderLineConnections.map((connection) => ({
+        const mapped = borderLineConnections.map((connection) => ({
             start: connection.start === sourceVertexName ? targetVertexName : connection.start,
             end: connection.end === sourceVertexName ? targetVertexName : connection.end
         }));
-        dedupeBorderConnections();
+        borderLineConnectionsByHole[activeHoleIndex] = mapped;
+        borderLineConnections = mapped;
+        dedupeBorderConnections(borderLineConnections, borderDots);
 
         const sourceDot = borderDots[sourceVertexName];
         scene.remove(sourceDot);
