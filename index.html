@@ -41,6 +41,21 @@
             pointer-events: none;
             z-index: 7;  /* above vignette (no z-index), below menu (10) so label visible in center */
         }
+        #tap-focus-feedback {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 8;
+            border: 1.5px solid rgba(255, 255, 255, 0.5);
+            background: transparent;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.17);
+        }
         .tapdot-label-bubble {
             position: absolute;
             transform: translate(-50%, -100%);
@@ -1398,6 +1413,7 @@
 <body>
     <div id="vignette"></div>
     <div id="tapdot-labels-layer"></div>
+    <div id="tap-focus-feedback" aria-hidden="true"></div>
     <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; font-size: 24px; font-family: Arial, sans-serif;">Lot #1</div>
 
     <!-- Compass temporarily hidden - will be used later for UI functionality -->
@@ -1621,6 +1637,7 @@
 
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
+    import { sampleCpuPointsForFocus, findClosestSampleToRay, computeScreenDistancePx } from './tap-focus-refinement.mjs';
 
     function isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -1902,6 +1919,7 @@
     controls.update();
 
     controls.addEventListener('change', () => {
+        if (typeof tapFocusTransition !== 'undefined' && tapFocusTransition.active) return;
         // Min Y rebound: original simple lerp (from initial commit)
         const activeConfig = getActiveHoleConfig();
         const targetY = activeConfig?.view?.target?.y ?? parameters.scene.origin.y;
@@ -1924,9 +1942,13 @@
             controls.target.x = clampRebound(controls.target.x, -tl.x, tl.x);
             controls.target.z = clampRebound(controls.target.z, -tl.z, tl.z);
         }
-        const preserveLookTargetY = (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled);
+        const preserveLookTargetY = (
+            (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled) ||
+            (typeof tapFocusTransition !== 'undefined' && tapFocusTransition.active)
+        );
         if (!preserveLookTargetY) {
-            controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
+            const fallbackY = parameters.scene.origin.y;
+            controls.target.y = Number.isFinite(manualFocusTargetY) ? manualFocusTargetY : fallbackY; // Preserve tap focus Y when set
         }
     });
 
@@ -2047,6 +2069,7 @@
 
     const holeSplats = new Array(holeConfigurations.length).fill(null);
     let activeHoleIndex = 0;
+    let manualFocusTargetY = null;
     let angle = MathUtils.degToRad(parameters.animation.initialAngle);
     let autoRotate = parameters.animation.autoRotate;
 
@@ -2116,6 +2139,21 @@
     function applyHoleView(holeConfig, resetCamera = true) {
         const viewConfig = holeConfig && holeConfig.view ? holeConfig.view : {};
         const target = viewConfig.target || parameters.scene.origin;
+        manualFocusTargetY = null;
+        if (typeof tapFocusTransition !== 'undefined') {
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 0;
+            tapFocusFeedback.active = false;
+            tapFocusState.debug.feedbackActive = false;
+            tapFocusState.debug.feedbackProgress = 0;
+            tapFocusState.debug.feedbackScreenX = null;
+            tapFocusState.debug.feedbackScreenY = null;
+            if (tapFocusFeedbackEl) {
+                tapFocusFeedbackEl.style.opacity = '0';
+                tapFocusFeedbackEl.style.display = 'none';
+            }
+        }
         controls.target.set(target.x, target.y, target.z);
         controls.minDistance = Number.isFinite(viewConfig.minDistance) ? viewConfig.minDistance : 0.6;
         controls.maxDistance = Math.max(controls.minDistance + 0.01, getConfiguredMaxDistance(holeConfig));
@@ -2301,6 +2339,304 @@
     hiddenCanvas.height = window.innerHeight;
     hiddenCanvas.style.display = 'none';
     document.body.appendChild(hiddenCanvas);
+
+    const tapFocusSettings = Object.freeze({
+        targetSampleCount: 18000,
+        maxRayDistanceSq: 0.0055,
+        maxScreenDistancePx: 120,
+        transitionDurationMs: 360
+    });
+
+    const tapFocusState = {
+        pointCache: new WeakMap(),
+        raycaster: new Raycaster(),
+        pointerNDC: new Vector2(),
+        inverseWorldMatrix: new Matrix4(),
+        localRayOrigin: new Vector3(),
+        localRayDirection: new Vector3(),
+        worldCandidate: new Vector3(),
+        projectedCandidate: new Vector3(),
+        debug: {
+            attemptCount: 0,
+            successCount: 0,
+            rejectCount: 0,
+            lastRejectedReason: '',
+            lastRayDistanceSq: null,
+            lastScreenDistancePx: null,
+            lastFocusedPoint: null,
+            activeSourcePointCount: 0,
+            activePointCount: 0,
+            activeStride: 0,
+            transitionActive: false,
+            transitionProgress: 0,
+            feedbackActive: false,
+            feedbackProgress: 0,
+            feedbackScreenX: null,
+            feedbackScreenY: null
+        }
+    };
+
+    const tapFocusTransition = {
+        active: false,
+        startedAt: 0,
+        durationMs: tapFocusSettings.transitionDurationMs,
+        startTarget: new Vector3(),
+        endTarget: new Vector3()
+    };
+
+    const tapFocusFeedback = {
+        active: false,
+        startedAt: 0,
+        durationMs: 560,
+        worldPoint: new Vector3(),
+        projected: new Vector3()
+    };
+
+    const tapFocusFeedbackEl = document.getElementById('tap-focus-feedback');
+    if (tapFocusFeedbackEl) tapFocusFeedbackEl.style.display = 'none';
+
+    window.__tapFocusDebug = {
+        getState: () => {
+            const activeSplat = holeSplats[activeHoleIndex];
+            const loader = activeSplat && activeSplat.lumaSplatsWebGL ? activeSplat.lumaSplatsWebGL.loader : null;
+            const activeLoaderPointCount = loader && Number.isFinite(loader.cpuPtsCount)
+                ? loader.cpuPtsCount
+                : loader && Number.isFinite(loader.numSplats)
+                    ? loader.numSplats
+                    : 0;
+            return {
+                activeHoleIndex,
+                activeLoaderPointCount,
+                ...tapFocusState.debug
+            };
+        }
+    };
+
+    function getActiveHoleSplatForTapFocus() {
+        const activeSplat = holeSplats[activeHoleIndex];
+        if (!activeSplat || !activeSplat.visible) return null;
+        return activeSplat;
+    }
+
+    function setTapFocusRejectionReason(reason) {
+        tapFocusState.debug.lastRejectedReason = reason || '';
+    }
+
+    function startTapFocusFeedback(worldPoint) {
+        if (!tapFocusFeedbackEl || !worldPoint) return;
+        tapFocusFeedback.active = true;
+        tapFocusFeedback.startedAt = performance.now();
+        tapFocusFeedback.worldPoint.copy(worldPoint);
+        tapFocusState.debug.feedbackActive = true;
+        tapFocusState.debug.feedbackProgress = 0;
+        tapFocusFeedbackEl.style.display = 'block';
+    }
+
+    function updateTapFocusFeedback(now = performance.now()) {
+        if (!tapFocusFeedbackEl) return false;
+        if (!tapFocusFeedback.active) {
+            if (tapFocusFeedbackEl.style.display !== 'none') {
+                tapFocusFeedbackEl.style.display = 'none';
+            }
+            return false;
+        }
+        const elapsedMs = Math.max(0, now - tapFocusFeedback.startedAt);
+        const progress = Math.min(elapsedMs / tapFocusFeedback.durationMs, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        tapFocusFeedback.projected.copy(tapFocusFeedback.worldPoint).project(camera);
+        const visible = tapFocusFeedback.projected.z > -1 && tapFocusFeedback.projected.z < 1;
+        const screenX = (tapFocusFeedback.projected.x + 1) * 0.5 * window.innerWidth;
+        const screenY = (1 - tapFocusFeedback.projected.y) * 0.5 * window.innerHeight;
+        tapFocusState.debug.feedbackScreenX = visible ? screenX : null;
+        tapFocusState.debug.feedbackScreenY = visible ? screenY : null;
+        tapFocusState.debug.feedbackProgress = progress;
+        if (visible) {
+            const fade = progress < 0.7 ? 1 : (1 - progress) / 0.3;
+            const clampedFade = Math.max(0, Math.min(fade, 1));
+            tapFocusFeedbackEl.style.left = `${screenX}px`;
+            tapFocusFeedbackEl.style.top = `${screenY}px`;
+            tapFocusFeedbackEl.style.opacity = `${clampedFade}`;
+            tapFocusFeedbackEl.style.transform = `translate(-50%, -50%) scale(${0.88 + ease * 0.12})`;
+            tapFocusFeedbackEl.style.display = 'block';
+        } else {
+            tapFocusFeedbackEl.style.opacity = '0';
+            tapFocusFeedbackEl.style.display = 'none';
+        }
+        if (progress >= 1) {
+            tapFocusFeedback.active = false;
+            tapFocusState.debug.feedbackActive = false;
+            tapFocusState.debug.feedbackProgress = 1;
+            tapFocusFeedbackEl.style.opacity = '0';
+            tapFocusFeedbackEl.style.display = 'none';
+        }
+        return true;
+    }
+
+    function beginTapFocusTransition(targetPoint) {
+        if (!targetPoint) return;
+        tapFocusTransition.active = true;
+        tapFocusTransition.startedAt = performance.now();
+        tapFocusTransition.durationMs = tapFocusSettings.transitionDurationMs;
+        tapFocusTransition.startTarget.copy(controls.target);
+        tapFocusTransition.endTarget.copy(targetPoint);
+        tapFocusState.debug.transitionActive = true;
+        tapFocusState.debug.transitionProgress = 0;
+    }
+
+    function updateTapFocusTransition(now = performance.now()) {
+        if (!tapFocusTransition.active) return false;
+        const elapsedMs = Math.max(0, now - tapFocusTransition.startedAt);
+        const progress = Math.min(elapsedMs / tapFocusTransition.durationMs, 1);
+        const easedProgress = 1 - Math.pow(1 - progress, 3);
+        controls.target.lerpVectors(
+            tapFocusTransition.startTarget,
+            tapFocusTransition.endTarget,
+            easedProgress
+        );
+        manualFocusTargetY = controls.target.y;
+        tapFocusState.debug.transitionProgress = progress;
+        if (progress >= 1) {
+            controls.target.copy(tapFocusTransition.endTarget);
+            manualFocusTargetY = tapFocusTransition.endTarget.y;
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 1;
+        }
+        return true;
+    }
+
+    function getTapFocusSampleCache(holeSplat) {
+        if (!holeSplat || !holeSplat.lumaSplatsWebGL || !holeSplat.lumaSplatsWebGL.loader) {
+            setTapFocusRejectionReason('splat-loader-not-ready');
+            return null;
+        }
+        const loader = holeSplat.lumaSplatsWebGL.loader;
+        const cpuPoints = loader.cpuPoints;
+        if (!cpuPoints || !cpuPoints.length) {
+            setTapFocusRejectionReason('splat-points-unavailable');
+            return null;
+        }
+        const availablePointCount = Math.floor(cpuPoints.length / 3);
+        const loadedPointCount = Number.isFinite(loader.cpuPtsCount)
+            ? Math.floor(loader.cpuPtsCount)
+            : Number.isFinite(loader.numSplats)
+                ? Math.floor(loader.numSplats)
+                : availablePointCount;
+        const sourcePointCount = Math.max(0, Math.min(availablePointCount, loadedPointCount));
+        if (!sourcePointCount) {
+            setTapFocusRejectionReason('splat-points-empty');
+            return null;
+        }
+
+        const cached = tapFocusState.pointCache.get(holeSplat);
+        if (cached && cached.sourcePointCount === sourcePointCount) {
+            tapFocusState.debug.activeSourcePointCount = cached.sourcePointCount;
+            tapFocusState.debug.activePointCount = cached.sampledPointCount;
+            tapFocusState.debug.activeStride = cached.stride;
+            return cached;
+        }
+
+        const sampled = sampleCpuPointsForFocus({
+            cpuPoints,
+            pointCount: sourcePointCount,
+            targetSampleCount: tapFocusSettings.targetSampleCount
+        });
+        if (!sampled) {
+            setTapFocusRejectionReason('splat-sampling-failed');
+            return null;
+        }
+        const cacheEntry = {
+            sourcePointCount,
+            sampledPointCount: sampled.sampledPointCount,
+            stride: sampled.stride,
+            samples: sampled.samples
+        };
+        tapFocusState.pointCache.set(holeSplat, cacheEntry);
+        tapFocusState.debug.activeSourcePointCount = cacheEntry.sourcePointCount;
+        tapFocusState.debug.activePointCount = cacheEntry.sampledPointCount;
+        tapFocusState.debug.activeStride = cacheEntry.stride;
+        return cacheEntry;
+    }
+
+    function setTapFocusRayFromEvent(event) {
+        const bounds = renderer.domElement.getBoundingClientRect();
+        tapFocusState.pointerNDC.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+        tapFocusState.pointerNDC.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+        tapFocusState.raycaster.setFromCamera(tapFocusState.pointerNDC, camera);
+    }
+
+    function pickWorldPointFromTap(event) {
+        if (!event || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) {
+            setTapFocusRejectionReason('invalid-tap-event');
+            return null;
+        }
+        const activeSplat = getActiveHoleSplatForTapFocus();
+        if (!activeSplat) {
+            setTapFocusRejectionReason('active-splat-missing');
+            return null;
+        }
+        const cacheEntry = getTapFocusSampleCache(activeSplat);
+        if (!cacheEntry || !cacheEntry.samples || cacheEntry.samples.length < 3) return null;
+
+        setTapFocusRayFromEvent(event);
+        activeSplat.updateMatrixWorld(true);
+        tapFocusState.inverseWorldMatrix.copy(activeSplat.matrixWorld).invert();
+        tapFocusState.localRayOrigin.copy(tapFocusState.raycaster.ray.origin).applyMatrix4(tapFocusState.inverseWorldMatrix);
+        tapFocusState.localRayDirection.copy(tapFocusState.raycaster.ray.direction).transformDirection(tapFocusState.inverseWorldMatrix);
+
+        const pick = findClosestSampleToRay({
+            samples: cacheEntry.samples,
+            rayOrigin: tapFocusState.localRayOrigin,
+            rayDirection: tapFocusState.localRayDirection,
+            maxDistanceSq: tapFocusSettings.maxRayDistanceSq
+        });
+        if (!pick) {
+            setTapFocusRejectionReason('ray-hit-not-found');
+            tapFocusState.debug.lastRayDistanceSq = null;
+            tapFocusState.debug.lastScreenDistancePx = null;
+            return null;
+        }
+        tapFocusState.debug.lastRayDistanceSq = pick.distanceSq;
+        tapFocusState.worldCandidate.set(pick.x, pick.y, pick.z).applyMatrix4(activeSplat.matrixWorld);
+
+        tapFocusState.projectedCandidate.copy(tapFocusState.worldCandidate).project(camera);
+        const screenDistancePx = computeScreenDistancePx({
+            ndcX: tapFocusState.projectedCandidate.x,
+            ndcY: tapFocusState.projectedCandidate.y,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            pointerX: event.clientX,
+            pointerY: event.clientY
+        });
+        tapFocusState.debug.lastScreenDistancePx = screenDistancePx;
+        if (screenDistancePx > tapFocusSettings.maxScreenDistancePx) {
+            setTapFocusRejectionReason('screen-distance-too-large');
+            return null;
+        }
+
+        return tapFocusState.worldCandidate.clone();
+    }
+
+    function focusCameraOnTappedPoint(event) {
+        tapFocusState.debug.attemptCount += 1;
+        const pickedPoint = pickWorldPointFromTap(event);
+        if (!pickedPoint) {
+            tapFocusState.debug.rejectCount += 1;
+            return false;
+        }
+        pauseCameraAutomationFromInteraction();
+        isAnimatingToNorth = false;
+        startTapFocusFeedback(pickedPoint);
+        beginTapFocusTransition(pickedPoint);
+        tapFocusState.debug.successCount += 1;
+        tapFocusState.debug.lastRejectedReason = '';
+        tapFocusState.debug.lastFocusedPoint = {
+            x: pickedPoint.x,
+            y: pickedPoint.y,
+            z: pickedPoint.z
+        };
+        return true;
+    }
 
     // Screen-space tap radius so hit area scales with how big the dot appears (relative to view)
     function getTapDotScreenRadiusPx(tapDot) {
@@ -3144,6 +3480,8 @@
 
         // Update camera animation if active
         updateCameraAnimation();
+        updateTapFocusTransition(now);
+        updateTapFocusFeedback(now);
 
         // Min Y: sync orbit polar limit so floor is consistent at all distances
         const activeConfig = getActiveHoleConfig();
@@ -3167,6 +3505,11 @@
     }
 
     function pauseCameraAutomationFromInteraction() {
+        if (tapFocusTransition.active) {
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 1;
+        }
         autoRotate = false;
         if (pathAnimationState.playing) {
             pathAnimationState.playing = false;
@@ -3247,26 +3590,30 @@
 
     window.addEventListener('click', (event) => {
         if (performance.now() < suppressTapDotClickUntil) return;
-        handleTapDotActivation(event);
+        const handledTapDot = handleTapDotActivation(event);
+        if (!handledTapDot) focusCameraOnTappedPoint(event);
     });
 
     window.addEventListener('pointerup', (event) => {
         if (!event.isPrimary) return;
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
-        const handled = handleTapDotActivation(event);
-        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+        const handledTapDot = handleTapDotActivation(event);
+        const focused = handledTapDot ? false : focusCameraOnTappedPoint(event);
+        if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
     window.addEventListener('touchend', (event) => {
         if ('PointerEvent' in window) return;
         if (!event.changedTouches || !event.changedTouches.length) return;
         const touch = event.changedTouches[0];
-        const handled = handleTapDotActivation({
+        const syntheticTapEvent = {
             clientX: touch.clientX,
             clientY: touch.clientY,
             target: event.target
-        });
-        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+        };
+        const handledTapDot = handleTapDotActivation(syntheticTapEvent);
+        const focused = handledTapDot ? false : focusCameraOnTappedPoint(syntheticTapEvent);
+        if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
     // Render loop is started above (no longer gated on icon load)
