@@ -3458,32 +3458,37 @@
                 return a.distance - b.distance;
             });
             const visibleRects = [];
-            const jitterThreshold = 30;
-            const jitterLerp = 0.35;
-            const jitterLerpY = 0.18;
-            const microLerp = 0.06;   /* much slower for tiny movements - low-pass filter jitter */
-            const microLerpY = 0.03;
-            const microDistance = 6;  /* below this px distance, use micro lerp */
+            const snapThreshold = 55;
+            const baseStiffness = 0.6;
+            const maxStiffness = 22;
             labelsData.forEach(({ tapDot, screenPos }) => {
                 const labelEl = tapDot.labelEl;
                 const rawX = screenPos.x;
                 const rawY = screenPos.y;
                 let sx = tapDot._labelX;
                 let sy = tapDot._labelY;
-                if (sx === undefined) { sx = rawX; sy = rawY; }
+                let vx = tapDot._labelVelX ?? 0;
+                let vy = tapDot._labelVelY ?? 0;
+                if (sx === undefined) { sx = rawX; sy = rawY; vx = 0; vy = 0; }
                 const dx = rawX - sx;
                 const dy = rawY - sy;
-                const adx = Math.abs(dx);
-                const ady = Math.abs(dy);
+                const delta = Math.hypot(dx, dy);
                 let x, y;
-                if (adx >= jitterThreshold || ady >= jitterThreshold) {
-                    x = rawX; y = rawY;  /* snap for large movement */
+                if (delta >= snapThreshold) {
+                    x = rawX;
+                    y = rawY;
+                    tapDot._labelVelX = 0;
+                    tapDot._labelVelY = 0;
                 } else {
-                    const dist = Math.max(adx, ady);
-                    const lerpX = dist < microDistance ? microLerp : jitterLerp;
-                    const lerpY = dist < microDistance ? microLerpY : jitterLerpY;
-                    x = sx + dx * lerpX;
-                    y = sy + dy * lerpY;
+                    const stiffness = Math.min(baseStiffness + (delta / 10) * (delta / 10), maxStiffness);
+                    const damping = 2.2 * Math.sqrt(stiffness);
+                    const dt = Math.min(deltaSeconds, 0.05);
+                    vx += (dx * stiffness - vx * damping) * dt;
+                    vy += (dy * stiffness - vy * damping) * dt;
+                    x = sx + vx * dt;
+                    y = sy + vy * dt;
+                    tapDot._labelVelX = vx;
+                    tapDot._labelVelY = vy;
                 }
                 tapDot._labelX = x;
                 tapDot._labelY = y;
