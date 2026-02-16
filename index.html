@@ -1563,10 +1563,11 @@
     }
     </script>
     <script type="module">
-    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane } from 'three';
+    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane, TOUCH } from 'three';
 
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
+    import { sampleCpuPointsForFocus, findClosestSampleToRay, computeScreenDistancePx } from './tap-focus-refinement.mjs';
 
     function isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -1836,6 +1837,8 @@
     if ('zoomToCursor' in controls) {
         controls.zoomToCursor = true;
     }
+    controls.touches.ONE = TOUCH.PAN;
+    controls.touches.TWO = TOUCH.DOLLY_ROTATE;
     controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
     controls.update();
 
@@ -1857,7 +1860,8 @@
         }
         const preserveLookTargetY = (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled);
         if (!preserveLookTargetY) {
-            controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
+            const fallbackY = parameters.scene.origin.y;
+            controls.target.y = Number.isFinite(manualFocusTargetY) ? manualFocusTargetY : fallbackY; // Preserve tap focus Y when set
         }
     });
 
@@ -1978,6 +1982,7 @@
 
     const holeSplats = new Array(holeConfigurations.length).fill(null);
     let activeHoleIndex = 0;
+    let manualFocusTargetY = null;
     let angle = MathUtils.degToRad(parameters.animation.initialAngle);
     let autoRotate = parameters.animation.autoRotate;
 
@@ -2047,6 +2052,7 @@
     function applyHoleView(holeConfig, resetCamera = true) {
         const viewConfig = holeConfig && holeConfig.view ? holeConfig.view : {};
         const target = viewConfig.target || parameters.scene.origin;
+        manualFocusTargetY = null;
         controls.target.set(target.x, target.y, target.z);
         controls.minDistance = Number.isFinite(viewConfig.minDistance) ? viewConfig.minDistance : 0.6;
         controls.maxDistance = Math.max(controls.minDistance + 0.01, getConfiguredMaxDistance(holeConfig));
@@ -2106,9 +2112,10 @@
 
     controls.addEventListener('change', () => {
         const activeConfig = getActiveHoleConfig();
-        const targetY = activeConfig && activeConfig.view && activeConfig.view.target
+        const baseTargetY = activeConfig && activeConfig.view && activeConfig.view.target
             ? activeConfig.view.target.y
             : parameters.scene.origin.y;
+        const targetY = Number.isFinite(manualFocusTargetY) ? manualFocusTargetY : baseTargetY;
         controls.target.y = targetY;
         const minCameraY = targetY + parameters.camera.minHeightAboveTarget;
         if (camera.position.y < minCameraY) {
@@ -2226,6 +2233,195 @@
     hiddenCanvas.height = window.innerHeight;
     hiddenCanvas.style.display = 'none';
     document.body.appendChild(hiddenCanvas);
+
+    const tapFocusSettings = Object.freeze({
+        targetSampleCount: 18000,
+        maxRayDistanceSq: 0.0055,
+        maxScreenDistancePx: 120
+    });
+
+    const tapFocusState = {
+        pointCache: new WeakMap(),
+        raycaster: new Raycaster(),
+        pointerNDC: new Vector2(),
+        inverseWorldMatrix: new Matrix4(),
+        localRayOrigin: new Vector3(),
+        localRayDirection: new Vector3(),
+        worldCandidate: new Vector3(),
+        projectedCandidate: new Vector3(),
+        debug: {
+            attemptCount: 0,
+            successCount: 0,
+            rejectCount: 0,
+            lastRejectedReason: '',
+            lastRayDistanceSq: null,
+            lastScreenDistancePx: null,
+            lastFocusedPoint: null,
+            activeSourcePointCount: 0,
+            activePointCount: 0,
+            activeStride: 0
+        }
+    };
+
+    window.__tapFocusDebug = {
+        getState: () => {
+            const activeSplat = holeSplats[activeHoleIndex];
+            const loader = activeSplat && activeSplat.lumaSplatsWebGL ? activeSplat.lumaSplatsWebGL.loader : null;
+            const activeLoaderPointCount = loader && Number.isFinite(loader.cpuPtsCount)
+                ? loader.cpuPtsCount
+                : loader && Number.isFinite(loader.numSplats)
+                    ? loader.numSplats
+                    : 0;
+            return {
+                activeHoleIndex,
+                activeLoaderPointCount,
+                ...tapFocusState.debug
+            };
+        }
+    };
+
+    function getActiveHoleSplatForTapFocus() {
+        const activeSplat = holeSplats[activeHoleIndex];
+        if (!activeSplat || !activeSplat.visible) return null;
+        return activeSplat;
+    }
+
+    function setTapFocusRejectionReason(reason) {
+        tapFocusState.debug.lastRejectedReason = reason || '';
+    }
+
+    function getTapFocusSampleCache(holeSplat) {
+        if (!holeSplat || !holeSplat.lumaSplatsWebGL || !holeSplat.lumaSplatsWebGL.loader) {
+            setTapFocusRejectionReason('splat-loader-not-ready');
+            return null;
+        }
+        const loader = holeSplat.lumaSplatsWebGL.loader;
+        const cpuPoints = loader.cpuPoints;
+        if (!cpuPoints || !cpuPoints.length) {
+            setTapFocusRejectionReason('splat-points-unavailable');
+            return null;
+        }
+        const availablePointCount = Math.floor(cpuPoints.length / 3);
+        const loadedPointCount = Number.isFinite(loader.cpuPtsCount)
+            ? Math.floor(loader.cpuPtsCount)
+            : Number.isFinite(loader.numSplats)
+                ? Math.floor(loader.numSplats)
+                : availablePointCount;
+        const sourcePointCount = Math.max(0, Math.min(availablePointCount, loadedPointCount));
+        if (!sourcePointCount) {
+            setTapFocusRejectionReason('splat-points-empty');
+            return null;
+        }
+
+        const cached = tapFocusState.pointCache.get(holeSplat);
+        if (cached && cached.sourcePointCount === sourcePointCount) {
+            tapFocusState.debug.activeSourcePointCount = cached.sourcePointCount;
+            tapFocusState.debug.activePointCount = cached.sampledPointCount;
+            tapFocusState.debug.activeStride = cached.stride;
+            return cached;
+        }
+
+        const sampled = sampleCpuPointsForFocus({
+            cpuPoints,
+            pointCount: sourcePointCount,
+            targetSampleCount: tapFocusSettings.targetSampleCount
+        });
+        if (!sampled) {
+            setTapFocusRejectionReason('splat-sampling-failed');
+            return null;
+        }
+        const cacheEntry = {
+            sourcePointCount,
+            sampledPointCount: sampled.sampledPointCount,
+            stride: sampled.stride,
+            samples: sampled.samples
+        };
+        tapFocusState.pointCache.set(holeSplat, cacheEntry);
+        tapFocusState.debug.activeSourcePointCount = cacheEntry.sourcePointCount;
+        tapFocusState.debug.activePointCount = cacheEntry.sampledPointCount;
+        tapFocusState.debug.activeStride = cacheEntry.stride;
+        return cacheEntry;
+    }
+
+    function setTapFocusRayFromEvent(event) {
+        const bounds = renderer.domElement.getBoundingClientRect();
+        tapFocusState.pointerNDC.x = ((event.clientX - bounds.left) / bounds.width) * 2 - 1;
+        tapFocusState.pointerNDC.y = -((event.clientY - bounds.top) / bounds.height) * 2 + 1;
+        tapFocusState.raycaster.setFromCamera(tapFocusState.pointerNDC, camera);
+    }
+
+    function pickWorldPointFromTap(event) {
+        if (!event || !Number.isFinite(event.clientX) || !Number.isFinite(event.clientY)) {
+            setTapFocusRejectionReason('invalid-tap-event');
+            return null;
+        }
+        const activeSplat = getActiveHoleSplatForTapFocus();
+        if (!activeSplat) {
+            setTapFocusRejectionReason('active-splat-missing');
+            return null;
+        }
+        const cacheEntry = getTapFocusSampleCache(activeSplat);
+        if (!cacheEntry || !cacheEntry.samples || cacheEntry.samples.length < 3) return null;
+
+        setTapFocusRayFromEvent(event);
+        activeSplat.updateMatrixWorld(true);
+        tapFocusState.inverseWorldMatrix.copy(activeSplat.matrixWorld).invert();
+        tapFocusState.localRayOrigin.copy(tapFocusState.raycaster.ray.origin).applyMatrix4(tapFocusState.inverseWorldMatrix);
+        tapFocusState.localRayDirection.copy(tapFocusState.raycaster.ray.direction).transformDirection(tapFocusState.inverseWorldMatrix);
+
+        const pick = findClosestSampleToRay({
+            samples: cacheEntry.samples,
+            rayOrigin: tapFocusState.localRayOrigin,
+            rayDirection: tapFocusState.localRayDirection,
+            maxDistanceSq: tapFocusSettings.maxRayDistanceSq
+        });
+        if (!pick) {
+            setTapFocusRejectionReason('ray-hit-not-found');
+            tapFocusState.debug.lastRayDistanceSq = null;
+            tapFocusState.debug.lastScreenDistancePx = null;
+            return null;
+        }
+        tapFocusState.debug.lastRayDistanceSq = pick.distanceSq;
+        tapFocusState.worldCandidate.set(pick.x, pick.y, pick.z).applyMatrix4(activeSplat.matrixWorld);
+
+        tapFocusState.projectedCandidate.copy(tapFocusState.worldCandidate).project(camera);
+        const screenDistancePx = computeScreenDistancePx({
+            ndcX: tapFocusState.projectedCandidate.x,
+            ndcY: tapFocusState.projectedCandidate.y,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight,
+            pointerX: event.clientX,
+            pointerY: event.clientY
+        });
+        tapFocusState.debug.lastScreenDistancePx = screenDistancePx;
+        if (screenDistancePx > tapFocusSettings.maxScreenDistancePx) {
+            setTapFocusRejectionReason('screen-distance-too-large');
+            return null;
+        }
+
+        return tapFocusState.worldCandidate.clone();
+    }
+
+    function focusCameraOnTappedPoint(event) {
+        tapFocusState.debug.attemptCount += 1;
+        const pickedPoint = pickWorldPointFromTap(event);
+        if (!pickedPoint) {
+            tapFocusState.debug.rejectCount += 1;
+            return false;
+        }
+        pauseCameraAutomationFromInteraction();
+        manualFocusTargetY = pickedPoint.y;
+        controls.target.copy(pickedPoint);
+        controls.update();
+        tapFocusState.debug.successCount += 1;
+        tapFocusState.debug.lastRejectedReason = '';
+        tapFocusState.debug.lastFocusedPoint = {
+            x: pickedPoint.x,
+            y: pickedPoint.y,
+            z: pickedPoint.z
+        };
+        return true;
+    }
 
     // Screen-space tap radius so hit area scales with how big the dot appears (relative to view)
     function getTapDotScreenRadiusPx(tapDot) {
@@ -3034,29 +3230,38 @@
     let lastPointerDownForTapDot = { x: 0, y: 0 };
     let suppressTapDotClickUntil = 0;
     const tapDotClickMoveThreshold = 10;
+    const tapGestureUiBlockSelector = '#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus, .editor-toggles-wrap, .animation-editor-panel, .splat-editor-panel';
     window.addEventListener('pointerdown', (event) => {
         lastPointerDownForTapDot = { x: event.clientX, y: event.clientY };
     }, { passive: true });
 
-    function handleTapDotActivation(event) {
+    function getTapInteractionPoint(event) {
         if (lotEditState.suppressNextClick) {
             lotEditState.suppressNextClick = false;
-            return true;
+            return null;
         }
-        if (lotEditState.active) return;
-        if (window.isTapdotPopupOpen || isDetailsOpen) return;
+        if (lotEditState.active) return null;
+        if (window.isTapdotPopupOpen || isDetailsOpen) return null;
         const eventTarget = event.target;
-        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus, .editor-toggles-wrap, .animation-editor-panel, .splat-editor-panel')) return;
+        if (eventTarget && eventTarget.closest && eventTarget.closest(tapGestureUiBlockSelector)) return null;
         const dx = event.clientX - lastPointerDownForTapDot.x;
         const dy = event.clientY - lastPointerDownForTapDot.y;
-        if (Math.sqrt(dx * dx + dy * dy) > tapDotClickMoveThreshold) return;
+        if (Math.sqrt(dx * dx + dy * dy) > tapDotClickMoveThreshold) return null;
         const x = Math.floor(event.clientX);
         const y = Math.floor(event.clientY);
-        if (x < 0 || x >= hiddenCanvas.width || y < 0 || y >= hiddenCanvas.height) return;
+        if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+        if (x < 0 || x >= window.innerWidth || y < 0 || y >= window.innerHeight) return null;
+        return { x, y };
+    }
+
+    function handleTapDotActivation(event, tapPoint = getTapInteractionPoint(event)) {
+        if (!tapPoint) return false;
+        const { x, y } = tapPoint;
+        if (x >= hiddenCanvas.width || y >= hiddenCanvas.height) return false;
         try {
             renderHiddenCanvas();
             hiddenContext.getImageData(x, y, 1, 1);
-        } catch (e) { return; }
+        } catch (e) { return false; }
 
         let closestDot = null;
         let closestDistance = Infinity;
@@ -3089,26 +3294,38 @@
 
     window.addEventListener('click', (event) => {
         if (performance.now() < suppressTapDotClickUntil) return;
-        handleTapDotActivation(event);
+        const tapPoint = getTapInteractionPoint(event);
+        if (!tapPoint) return;
+        const handledTapDot = handleTapDotActivation(event, tapPoint);
+        if (!handledTapDot) {
+            focusCameraOnTappedPoint(event);
+        }
     });
 
     window.addEventListener('pointerup', (event) => {
         if (!event.isPrimary) return;
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
-        const handled = handleTapDotActivation(event);
-        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+        const tapPoint = getTapInteractionPoint(event);
+        if (!tapPoint) return;
+        const handledTapDot = handleTapDotActivation(event, tapPoint);
+        const focused = handledTapDot ? false : focusCameraOnTappedPoint(event);
+        if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
     window.addEventListener('touchend', (event) => {
         if ('PointerEvent' in window) return;
         if (!event.changedTouches || !event.changedTouches.length) return;
         const touch = event.changedTouches[0];
-        const handled = handleTapDotActivation({
+        const syntheticTapEvent = {
             clientX: touch.clientX,
             clientY: touch.clientY,
             target: event.target
-        });
-        if (handled) suppressTapDotClickUntil = performance.now() + 700;
+        };
+        const tapPoint = getTapInteractionPoint(syntheticTapEvent);
+        if (!tapPoint) return;
+        const handledTapDot = handleTapDotActivation(syntheticTapEvent, tapPoint);
+        const focused = handledTapDot ? false : focusCameraOnTappedPoint(syntheticTapEvent);
+        if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
     // Render loop is started above (no longer gated on icon load)
