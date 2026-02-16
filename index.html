@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Red Arrow Ranch</title>
+    <title>Copper Rock Golf Course</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- Fonts from original Shell.html -->
     <link href="https://fonts.googleapis.com/css2?family=Helvetica+Neue&display=swap" rel="stylesheet">
@@ -1607,11 +1607,12 @@
         </div>
         <div class="details-content" id="detailsContent">
             <div class="details-inner" id="detailsInner">
-                <h1>Red Arrow Ranch</h1>
+                <h1>Copper Rock Golf Course</h1>
                 <hr style="border:none; border-top:1px solid rgba(255,255,255,0.4); margin:15px 0;">
                 <hr style="border:none; border-top:0px solid rgba(255,255,255,0.4); margin:13px 0;">
 
-                <p>There are places that simply exist within the landscape—and then there are those that define it. Set against the backdrop of the Uinta and Wasatch Mountain ranges, Red Arrow Ranch is a world-class equestrian estate that stands as one of Utah's true legacy properties. With over 22 acres of pristine land, a state-of-the-art indoor arena, and every detail crafted with intention, this is more than a ranch. It's a performance estate for champions—built with purpose, precision, and heart.</p>
+                <p>Copper Rock Golf Course is a premier championship-level golf destination set against the striking red rock cliffs and open desert vistas of Hurricane, Utah. Designed for both playability and prestige, the 18-hole layout stretches across former farmland transformed into rolling fairways, sculpted greens, and panoramic sightlines of the Pine Valley Mountains and Hurricane Cliffs.</p>
+                <p>Blending wide, inviting driving corridors with thoughtfully placed hazards and elevation changes, Copper Rock delivers a refined yet challenging experience for golfers of every caliber. The course's modern clubhouse, immaculate conditioning, and sweeping Southern Utah scenery create an atmosphere that feels equal parts resort retreat and competitive venue — a place where luxury, landscape, and championship design converge.</p>
 
                 <div class="legal-disclaimer">
                     <hr style="border:none; border-top:1px solid rgba(255,255,255,0.4); margin:30px 0;">
@@ -3298,6 +3299,20 @@
             }
             return;
         }
+        // Clear tap focus so animation uses its intended orbit/look-at points
+        manualFocusTargetY = null;
+        if (typeof tapFocusTransition !== 'undefined') {
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 0;
+            tapFocusFeedback.active = false;
+            tapFocusState.debug.feedbackActive = false;
+            tapFocusState.debug.feedbackProgress = 0;
+            if (tapFocusFeedbackEl) {
+                tapFocusFeedbackEl.style.opacity = '0';
+                tapFocusFeedbackEl.style.display = 'none';
+            }
+        }
         const primaryFocus = getPrimaryFocusPoint();
         pathAnimationState.lookAtOverrideAtStart = primaryFocus;
         pathAnimationState.segmentIndex = 0;
@@ -3314,6 +3329,7 @@
             controls.update();
         }
         pathAnimationState.playing = true;
+        ignoreNextPauseUntil = performance.now() + 150;
         if (typeof setAnimationEditorStatus === 'function') {
             setAnimationEditorStatus('Playing from start.');
         }
@@ -3534,8 +3550,16 @@
         }
     }
 
-    controls.addEventListener('start', pauseCameraAutomationFromInteraction);
-    window.addEventListener('touchstart', pauseCameraAutomationFromInteraction);
+    let ignoreNextPauseUntil = 0;
+    controls.addEventListener('start', () => {
+        if (performance.now() < ignoreNextPauseUntil) return;
+        pauseCameraAutomationFromInteraction();
+    });
+    window.addEventListener('touchstart', (e) => {
+        if (e?.target?.closest?.('.menu-container, #compassButton, .hole-carousel, #detailsButton, #fullscreenButton')) return;
+        if (performance.now() < ignoreNextPauseUntil) return;
+        pauseCameraAutomationFromInteraction();
+    });
 
     let lastPointerDownForTapDot = { x: 0, y: 0 };
     let suppressTapDotClickUntil = 0;
@@ -3606,17 +3630,20 @@
         return Math.sqrt(dx * dx + dy * dy) <= tapDotClickMoveThreshold;
     }
 
+    function isClickOn3DScene(event) {
+        return event?.target === renderer.domElement;
+    }
     window.addEventListener('click', (event) => {
         if (performance.now() < suppressTapDotClickUntil) return;
         const handledTapDot = handleTapDotActivation(event);
-        if (!handledTapDot && wasTapAtSameSpot(event)) focusCameraOnTappedPoint(event);
+        if (!handledTapDot && wasTapAtSameSpot(event) && isClickOn3DScene(event)) focusCameraOnTappedPoint(event);
     });
 
     window.addEventListener('pointerup', (event) => {
         if (!event.isPrimary) return;
         if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return;
         const handledTapDot = handleTapDotActivation(event);
-        const focused = handledTapDot ? false : (wasTapAtSameSpot(event) && focusCameraOnTappedPoint(event));
+        const focused = handledTapDot ? false : (wasTapAtSameSpot(event) && isClickOn3DScene(event) && focusCameraOnTappedPoint(event));
         if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
@@ -3630,7 +3657,7 @@
             target: event.target
         };
         const handledTapDot = handleTapDotActivation(syntheticTapEvent);
-        const focused = handledTapDot ? false : (wasTapAtSameSpot(syntheticTapEvent) && focusCameraOnTappedPoint(syntheticTapEvent));
+        const focused = handledTapDot ? false : (wasTapAtSameSpot(syntheticTapEvent) && isClickOn3DScene(syntheticTapEvent) && focusCameraOnTappedPoint(syntheticTapEvent));
         if (handledTapDot || focused) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
@@ -3961,6 +3988,16 @@
             syncAnimationEditorFromState();
             return;
         }
+        manualFocusTargetY = null;
+        if (typeof tapFocusTransition !== 'undefined') {
+            tapFocusTransition.active = false;
+            tapFocusFeedback.active = false;
+            if (tapFocusFeedbackEl) {
+                tapFocusFeedbackEl.style.opacity = '0';
+                tapFocusFeedbackEl.style.display = 'none';
+            }
+        }
+        ignoreNextPauseUntil = performance.now() + 150;
         autoRotate = false;
         isAnimatingToNorth = false;
         if (!pathAnimationState.loop && animationEditorState.selectedCheckpointIndex >= pathAnimationState.checkpoints.length - 1) {
@@ -5106,7 +5143,7 @@
     });
 
     // Add click listener for compass button (dual purpose: north face OR animation start)
-    compassButton.addEventListener('click', () => {
+    compassButton.addEventListener('click', (event) => {
         const mode = (parameters.compass.northButtonMode || 'north').toLowerCase();
         if (mode === 'animationstart') {
             goToAnimationStart();
