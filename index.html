@@ -1439,11 +1439,10 @@
     }
     </script>
     <script type="module">
-    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane, MOUSE, TOUCH } from 'three';
+    import { WebGLRenderer, PerspectiveCamera, Scene, Color, Vector2, Vector3, SphereGeometry, CylinderGeometry, BoxGeometry, MeshBasicMaterial, Mesh, TextureLoader, PlaneGeometry, DoubleSide, MeshStandardMaterial, Texture, MathUtils, Matrix4, Raycaster, Plane } from 'three';
 
-    import { MapControls } from 'three/addons/controls/MapControls.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
-    import { installSafeControlsRefinement, shouldTranslateCameraForTargetDelta } from './safe-controls-refinement.mjs';
 
     function isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -1698,20 +1697,10 @@
     let camera = new PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, parameters.camera.maxZoomOut);
     camera.position.set(parameters.camera.startPosition.x, parameters.camera.startPosition.y, parameters.camera.startPosition.z);
 
-    let controls = new MapControls(camera, renderer.domElement);
+    let controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.enablePan = true;
-    controls.enableRotate = true;
-    controls.screenSpacePanning = true;  // Google Earth style: drag direction = movement direction on screen
-    controls.zoomSpeed = 0.7;
-    controls.panSpeed = 1.2;
-    controls.rotateSpeed = 0.5;
-    controls.mouseButtons.LEFT = MOUSE.PAN;
-    controls.mouseButtons.MIDDLE = MOUSE.DOLLY;
-    controls.mouseButtons.RIGHT = MOUSE.ROTATE;
-    controls.touches.ONE = TOUCH.PAN;
-    controls.touches.TWO = TOUCH.DOLLY_ROTATE;
+    controls.zoomSpeed = 0.5;  // Original orbital: halved zoom sensitivity
     controls.minDistance = 0.6;
     controls.maxDistance = calculateMaxDistance();
     controls.minPolarAngle = 0;
@@ -1721,35 +1710,6 @@
     }
     controls.target.set(parameters.scene.origin.x, parameters.scene.origin.y, parameters.scene.origin.z);
     controls.update();
-
-    // Google Earth style: when panning (drag), move both camera and target together (translate view)
-    // instead of orbiting around the target. Tracks previous state to detect pan vs rotate.
-    const panState = {
-        userInteracting: false,
-        prevTarget: new Vector3().copy(controls.target),
-        prevCamera: new Vector3().copy(camera.position)
-    };
-
-    const safeControlsRefinement = installSafeControlsRefinement({
-        windowTarget: window,
-        domElement: renderer.domElement,
-        controls,
-        camera,
-        lotEditState,
-        MOUSE,
-        Vector3,
-        onUserNavigate: pauseCameraAutomationFromInteraction
-    });
-
-    controls.addEventListener('start', () => {
-        clearTimeout(panState._dampingTimeout);
-        panState.userInteracting = true;
-    });
-    controls.addEventListener('end', () => {
-        // Keep translate behavior during damping settle (avoids snap when releasing)
-        clearTimeout(panState._dampingTimeout);
-        panState._dampingTimeout = setTimeout(() => { panState.userInteracting = false; }, 150);
-    });
 
     controls.addEventListener('change', () => {
         // Restrict camera Y minimum
@@ -1771,22 +1731,6 @@
         if (!preserveLookTargetY) {
             controls.target.y = parameters.scene.origin.y; // Set target Y limit for manual exploration
         }
-
-        // Google Earth pan: when user drags (pan), translate both camera and target together
-        // so the view slides like a map instead of orbiting. Target change = pan (rotate/dolly don't move target).
-        if (panState.userInteracting) {
-            const delta = new Vector3().subVectors(controls.target, panState.prevTarget);
-            const deltaLen = delta.length();
-            if (shouldTranslateCameraForTargetDelta({
-                userInteracting: panState.userInteracting,
-                interactionMode: safeControlsRefinement.getInteractionMode(),
-                deltaLength: deltaLen
-            })) {
-                camera.position.copy(panState.prevCamera).add(delta);
-            }
-        }
-        panState.prevTarget.copy(controls.target);
-        panState.prevCamera.copy(camera.position);
     });
 
     // Developer mode toggle
@@ -3236,12 +3180,19 @@
 
     function captureCheckpointFromCurrentView() {
         pathAnimationState.playing = false;
+        const checkpoints = pathAnimationState.checkpoints;
+        const selectedIdx = animationEditorState.selectedCheckpointIndex;
         const selected = getSelectedPathCheckpoint();
         const nextDuration = selected ? Math.max(0.1, selected.duration || 5) : 5;
         const checkpoint = buildCheckpointFromCurrentView(nextDuration);
-        pathAnimationState.checkpoints.push(checkpoint);
-        animationEditorState.selectedCheckpointIndex = pathAnimationState.checkpoints.length - 1;
-        setAnimationEditorStatus(`Captured checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
+        if (checkpoints.length > 0 && selectedIdx >= 0 && selectedIdx < checkpoints.length) {
+            checkpoints[selectedIdx] = checkpoint;
+            setAnimationEditorStatus(`Overwrote checkpoint ${selectedIdx + 1}.`);
+        } else {
+            checkpoints.push(checkpoint);
+            animationEditorState.selectedCheckpointIndex = checkpoints.length - 1;
+            setAnimationEditorStatus(`Captured checkpoint ${animationEditorState.selectedCheckpointIndex + 1}.`);
+        }
         syncAnimationEditorFromState();
     }
 
