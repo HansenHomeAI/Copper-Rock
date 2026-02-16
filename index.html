@@ -1443,6 +1443,7 @@
 
     import { MapControls } from 'three/addons/controls/MapControls.js';
     import { LumaSplatsThree } from '@lumaai/luma-web';
+    import { installSafeControlsRefinement, shouldTranslateCameraForTargetDelta } from './safe-controls-refinement.mjs';
 
     function isChrome() {
         return /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
@@ -1728,6 +1729,18 @@
         prevTarget: new Vector3().copy(controls.target),
         prevCamera: new Vector3().copy(camera.position)
     };
+
+    const safeControlsRefinement = installSafeControlsRefinement({
+        windowTarget: window,
+        domElement: renderer.domElement,
+        controls,
+        camera,
+        lotEditState,
+        MOUSE,
+        Vector3,
+        onUserNavigate: pauseCameraAutomationFromInteraction
+    });
+
     controls.addEventListener('start', () => {
         clearTimeout(panState._dampingTimeout);
         panState.userInteracting = true;
@@ -1764,7 +1777,11 @@
         if (panState.userInteracting) {
             const delta = new Vector3().subVectors(controls.target, panState.prevTarget);
             const deltaLen = delta.length();
-            if (deltaLen > 1e-8) {
+            if (shouldTranslateCameraForTargetDelta({
+                userInteracting: panState.userInteracting,
+                interactionMode: safeControlsRefinement.getInteractionMode(),
+                deltaLength: deltaLen
+            })) {
                 camera.position.copy(panState.prevCamera).add(delta);
             }
         }
