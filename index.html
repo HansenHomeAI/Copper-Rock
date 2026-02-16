@@ -1848,7 +1848,14 @@
     controls.update();
 
     controls.addEventListener('change', () => {
-        // Min Y rebound handled in animate loop (after controls.update) for progressive resistance and jitter-free settle
+        // Min Y rebound: original simple lerp (from initial commit)
+        const activeConfig = getActiveHoleConfig();
+        const targetY = activeConfig?.view?.target?.y ?? parameters.scene.origin.y;
+        const minYFromTarget = targetY + parameters.camera.minHeightAboveTarget;
+        const minY = Math.max(parameters.camera.minY, minYFromTarget);
+        if (camera.position.y < minY) {
+            camera.position.y += (minY - camera.position.y) * parameters.rebound.speed;
+        }
 
         // Restrict target movement on X and Z axes (when targetLimit is set)
         const tl = parameters.scene.targetLimit;
@@ -3026,38 +3033,6 @@
         }
 
         controls.update();
-
-        try {
-            const cfg = parameters.rebound.minY || { speed: 0.06, overshoot: 0.06, maxOvershoot: 0.015, settleThreshold: 0.02 };
-            const dist = camera.position.distanceTo(controls.target);
-            const penetration = minY - camera.position.y;
-            const inSettleZone = dist > 0.01 && Math.abs(camera.position.y - minY) < cfg.settleThreshold;
-
-            if (inSettleZone) {
-                camera.position.y = minY;
-                if (controls._sphericalDelta) {
-                    controls._sphericalDelta.phi = 0;
-                    controls._sphericalDelta.theta = 0;
-                }
-                if (controls._spherical && dist > 0.01) {
-                    const h = minY - targetY;
-                    controls._spherical.phi = Math.acos(Math.max(-1, Math.min(1, h / dist)));
-                }
-            } else if (penetration > 0.001) {
-                const resistanceFactor = 1 + Math.min(penetration * 10, 2);
-                const effectiveSpeed = cfg.speed * resistanceFactor;
-                const bounce = Math.min(penetration * cfg.overshoot, cfg.maxOvershoot);
-                const reboundTarget = minY + bounce;
-                const prevY = camera.position.y;
-                camera.position.y += (reboundTarget - camera.position.y) * Math.min(effectiveSpeed, 0.35);
-                if (Math.abs(camera.position.y - prevY) > 1e-6 && controls._spherical && dist > 0.01) {
-                    const h = camera.position.y - targetY;
-                    controls._spherical.phi = Math.acos(Math.max(-1, Math.min(1, h / dist)));
-                }
-            }
-        } catch (e) {
-            console.warn('Min Y rebound:', e);
-        }
 
         updateMidpointButtons();
         renderer.render(scene, camera);
