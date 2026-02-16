@@ -3533,6 +3533,10 @@
         const labelsLayer = document.getElementById('tapdot-labels-layer');
         const labelsVisible = labelsLayer && tapDotsConfig.visible !== false && !window.isTapdotPopupOpen && !isDetailsOpen;
         if (labelsLayer) labelsLayer.style.display = labelsVisible ? 'block' : 'none';
+        // Hide labels for tap dots belonging to other splats (they would otherwise persist at wrong screen position)
+        tapDots.forEach(td => {
+            if (td.labelEl) td.labelEl.style.display = td.holeIndex === activeHoleIndex ? '' : 'none';
+        });
         if (labelsVisible) {
             const overlapPadding = 6;
             const opacityLerp = 0.18;
