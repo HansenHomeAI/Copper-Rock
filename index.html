@@ -1790,7 +1790,8 @@
         ],
         // Hole 18
         [
-            { position: { x: 0, y: 0.1, z: 0.4 }, scale: 0.225, icon: 'info', caption: 'Hole 18', priority: 'low' },
+            { position: { x: -0.18843, y: -0.049, z: -0.142504 }, scale: 0.225, icon: 'info', caption: 'Hole 18', priority: 'low' },
+            { position: { x: 1.225352, y: -0.092, z: 0.190538 }, scale: 0.225, icon: 'info', caption: 'Driving Range', priority: 'low' },
         ],
         // Clubhouse
         [
@@ -2024,7 +2025,7 @@
             source: 'https://lumalabs.ai/embed/5c2af9e1-b55f-407c-ad17-d5ea73d4a2ee?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.6,
             splat: {
-                position: { x: 0, y: 0, z: 0 },
+                position: { x: 0, y: 0.32, z: 0 },
                 rotation: { x: 0, y: 4, z: 0 },
                 scale: 1
             },
@@ -2044,7 +2045,18 @@
                 initialAngle: 310,
                 center: { x: 0, y: -0.06, z: 0 }
             },
-            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
+            path: {
+                enabled: true,
+                loop: true,
+                speed: 1,
+                checkpoints: [
+                    { position: { x: -4.028567, y: 0.572872, z: 1.759158 }, lookAt: { x: -0.964374, y: -0.09405, z: 0.981995 }, duration: 5 },
+                    { position: { x: 1.166812, y: 0.475135, z: 2.54659 }, lookAt: { x: -1.198476, y: -0.127021, z: 0.528492 }, duration: 5 },
+                    { position: { x: 3.899295, y: 0.754653, z: 1.662439 }, lookAt: { x: -1.483479, y: -0.127021, z: 0.723575 }, duration: 5 },
+                    { position: { x: 3.605466, y: 0.354121, z: -2.241904 }, lookAt: { x: 0.337206, y: -0.079658, z: -0.11609 }, duration: 5 },
+                    { position: { x: -3.586367, y: 0.267657, z: 0.17056 }, lookAt: { x: -1.177208, y: -0.099678, z: 0.360242 }, duration: 5 }
+                ]
+            }
         },
         {
             id: 'clubhouse',
@@ -2052,7 +2064,7 @@
             source: 'https://lumalabs.ai/embed/f1e713a9-7bc4-43f0-8cb1-9c8fef376382?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.7,
             splat: {
-                position: { x: 0, y: 0, z: 0 },
+                position: { x: 0, y: 0.328, z: 0 },
                 rotation: { x: 0, y: -6, z: 0 },
                 scale: 1
             },
