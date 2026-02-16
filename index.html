@@ -356,7 +356,7 @@
             min-width: 84px;
             height: 34px;
             padding: 0 10px;
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             letter-spacing: 0.2px;
             line-height: 1;
@@ -1110,39 +1110,59 @@
             border-color: rgba(255, 255, 255, 0.38);
             background: rgba(191, 40, 27, 0.38);
         }
-        .animation-editor-toggle-wrap {
+        .editor-toggles-wrap {
             position: absolute;
             top: 12px;
             right: 12px;
             z-index: 12;
+            display: flex;
+            gap: 8px;
+        }
+        .animation-editor-toggle-wrap {
+            margin: 0;
+        }
+        .splat-editor-toggle-wrap {
+            margin: 0;
+        }
+        .animation-editor-toggle-icon-only {
+            padding: 0;
+            min-width: 40px;
+        }
+        .animation-editor-toggle-icon-only svg {
+            width: 20px;
+            height: 20px;
+        }
+        .animation-editor-toggle-icon-only span {
+            display: none;
         }
         .animation-editor-panel {
             left: auto;
             right: 12px;
             top: 66px;
             bottom: auto;
-            width: 312px;
-            max-width: min(312px, calc(100vw - 24px));
+            width: 260px;
+            max-width: min(260px, calc(100vw - 24px));
         }
         .animation-editor-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 8px;
-            margin-bottom: 4px;
+            gap: 6px;
+            margin-bottom: 2px;
         }
         .animation-editor-header .lot-editor-title {
             margin-bottom: 0;
+            font-size: 13px;
         }
         .animation-editor-close {
-            width: 28px;
-            min-width: 28px;
-            height: 28px;
+            width: 24px;
+            min-width: 24px;
+            height: 24px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 14px;
+            border-radius: 12px;
             background: rgba(0, 0, 0, 0.3);
             color: rgba(255, 255, 255, 0.9);
-            font: 500 17px/1 'Helvetica Neue', Arial, sans-serif;
+            font: 500 14px/1 sans-serif;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1155,20 +1175,22 @@
             background: rgba(191, 40, 27, 0.34);
         }
         .animation-editor-panel .lot-editor-status {
-            min-height: 32px;
-            margin-bottom: 8px;
+            min-height: 0;
+            margin-bottom: 4px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.7);
         }
         .animation-editor-summary {
-            margin: 0 0 9px;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.74);
-            line-height: 1.3;
+            margin: 0 0 6px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            line-height: 1.2;
         }
         .animation-checkpoint-strip {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             overflow-x: auto;
-            margin: 0 0 10px;
+            margin: 0 0 8px;
             padding: 0 0 4px;
             scrollbar-width: thin;
         }
@@ -1180,14 +1202,14 @@
             background: rgba(255, 255, 255, 0.22);
         }
         .animation-checkpoint-pill {
-            width: 34px;
-            min-width: 34px;
-            height: 34px;
-            border-radius: 17px;
+            width: 32px;
+            min-width: 32px;
+            height: 32px;
+            border-radius: 16px;
             border: 1px solid rgba(255, 255, 255, 0.2);
             background: rgba(0, 0, 0, 0.3);
             color: rgba(255, 255, 255, 0.92);
-            font: 500 12px/1 'Helvetica Neue', Arial, sans-serif;
+            font: 500 11px/1 'Helvetica Neue', Arial, sans-serif;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -1195,10 +1217,36 @@
             user-select: none;
             -webkit-user-select: none;
             transition: border-color 0.2s ease, background 0.2s ease;
+            position: relative;
+        }
+        .animation-checkpoint-pill .animation-checkpoint-pill-label {
+            transition: opacity 0.15s ease;
+        }
+        .animation-checkpoint-pill .animation-checkpoint-delete {
+            position: absolute;
+            inset: 0;
+            border: 0;
+            border-radius: inherit;
+            background: rgba(191, 40, 27, 0.85);
+            color: #fff;
+            font: 600 16px/1 sans-serif;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+        .animation-checkpoint-pill:hover .animation-checkpoint-pill-label {
+            opacity: 0;
+        }
+        .animation-checkpoint-pill:hover .animation-checkpoint-delete {
+            opacity: 1;
         }
         .animation-checkpoint-pill:hover {
             border-color: rgba(255, 255, 255, 0.42);
-            background: rgba(191, 40, 27, 0.3);
+            background: rgba(191, 40, 27, 0.35);
         }
         .animation-checkpoint-pill.active {
             border-color: rgba(255, 255, 255, 0.5);
@@ -1208,18 +1256,38 @@
             box-shadow: 0 0 0 2px rgba(191, 40, 27, 0.26);
         }
         .animation-editor-actions {
-            margin-top: 10px;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 8px;
+            margin-top: 6px;
+            display: flex;
+            gap: 6px;
         }
         .animation-editor-actions .lot-editor-action-btn {
             margin-top: 0;
-            padding: 10px 7px;
+            padding: 8px;
             min-width: 0;
+            flex: 1;
         }
-        .animation-editor-action-btn-wide {
-            width: 100%;
+        .animation-editor-btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .animation-editor-btn-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+        .splat-editor-panel {
+            top: 66px;
+            width: 260px;
+            max-width: min(260px, calc(100vw - 24px));
+        }
+        .splat-editor-grid {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+        .splat-editor-scale-field {
+            grid-column: 1 / -1;
+        }
+        .splat-editor-actions {
+            margin-top: 8px;
         }
         .lot-midpoint-layer {
             position: absolute;
@@ -1249,7 +1317,7 @@
             background: rgba(191, 40, 27, 0.85);
         }
         @media (max-width: 720px) {
-            .animation-editor-toggle-wrap {
+            .editor-toggles-wrap {
                 top: 12px;
                 right: 12px;
             }
@@ -1258,7 +1326,7 @@
                 right: 12px;
                 top: 66px;
                 bottom: auto;
-                width: min(300px, calc(100vw - 24px));
+                width: min(260px, calc(100vw - 24px));
             }
             .lot-editor-toggle-wrap {
                 right: 12px;
@@ -1311,8 +1379,14 @@
         </div>
     </div>
 
+    <div class="editor-toggles-wrap" id="editorTogglesWrap">
+    <div class="splat-editor-toggle-wrap" id="splatEditorToggleWrap">
+        <button id="splatEditorToggle" class="lot-editor-toggle animation-editor-toggle-icon-only" type="button" aria-pressed="false" aria-label="Toggle splat transform editor" title="Splat position & rotation">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
+        </button>
+    </div>
     <div class="animation-editor-toggle-wrap" id="animationEditorToggleWrap">
-        <button id="animationEditorToggle" class="lot-editor-toggle" type="button" aria-pressed="false" aria-label="Toggle camera path editor">
+        <button id="animationEditorToggle" class="lot-editor-toggle animation-editor-toggle-icon-only" type="button" aria-pressed="false" aria-label="Toggle camera path editor">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M4 18.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
                 <path d="M20 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"></path>
@@ -1320,21 +1394,71 @@
                 <path d="M6.2 14.2 17.7 9"></path>
                 <path d="M10.4 18.3 6.3 16"></path>
             </svg>
-            <span>Camera Path</span>
         </button>
     </div>
     <div id="animationEditorPanel" class="lot-editor-panel animation-editor-panel" aria-live="polite">
         <div class="animation-editor-header">
-            <div class="lot-editor-title">Camera Path</div>
-            <button id="animationEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close camera path panel">×</button>
+            <div class="lot-editor-title">Path</div>
+            <button id="animationEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close">×</button>
         </div>
-        <div id="animationEditorStatus" class="lot-editor-status">Move camera, click Capture, repeat. Click a checkpoint to jump.</div>
-        <div id="animationEditorSummary" class="animation-editor-summary">0 checkpoints captured</div>
+        <div id="animationEditorStatus" class="lot-editor-status animation-editor-status-compact"></div>
+        <div id="animationEditorSummary" class="animation-editor-summary"></div>
         <div id="animationCheckpointStrip" class="animation-checkpoint-strip" aria-label="Camera checkpoints"></div>
         <div class="animation-editor-actions">
-            <button id="animationCaptureCheckpointButton" type="button" class="lot-editor-action-btn">Capture</button>
-            <button id="animationPlayToggleButton" type="button" class="lot-editor-action-btn">Play</button>
-            <button id="animationExportButton" type="button" class="lot-editor-action-btn animation-editor-action-btn-wide">Copy JSON</button>
+            <button id="animationCaptureCheckpointButton" type="button" class="lot-editor-action-btn animation-editor-btn-icon" aria-label="Capture checkpoint" title="Capture (overwrites selected)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/></svg>
+            </button>
+            <button id="animationPlayToggleButton" type="button" class="lot-editor-action-btn animation-editor-btn-icon" aria-label="Play path" title="Play / Pause">
+                <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+                <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
+            </button>
+            <button id="animationExportButton" type="button" class="lot-editor-action-btn animation-editor-btn-icon" aria-label="Copy JSON" title="Copy path JSON">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+        </div>
+    </div>
+    </div>
+
+    <div id="splatEditorPanel" class="lot-editor-panel animation-editor-panel splat-editor-panel" aria-live="polite">
+        <div class="animation-editor-header">
+            <div class="lot-editor-title">Splat Transform</div>
+            <button id="splatEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close">×</button>
+        </div>
+        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 1</div>
+        <div class="lot-editor-grid splat-editor-grid">
+            <div class="lot-editor-field">
+                <label for="splatPosX">Pos X</label>
+                <input id="splatPosX" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="splatPosY">Pos Y</label>
+                <input id="splatPosY" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="splatPosZ">Pos Z</label>
+                <input id="splatPosZ" type="number" step="0.001">
+            </div>
+            <div class="lot-editor-field">
+                <label for="splatRotX">Rot X°</label>
+                <input id="splatRotX" type="number" step="0.1">
+            </div>
+            <div class="lot-editor-field">
+                <label for="splatRotY">Rot Y°</label>
+                <input id="splatRotY" type="number" step="0.1">
+            </div>
+            <div class="lot-editor-field">
+                <label for="splatRotZ">Rot Z°</label>
+                <input id="splatRotZ" type="number" step="0.1">
+            </div>
+            <div class="lot-editor-field splat-editor-scale-field">
+                <label for="splatScale">Scale</label>
+                <input id="splatScale" type="number" step="0.01" min="0.01">
+            </div>
+        </div>
+        <div class="animation-editor-actions splat-editor-actions">
+            <button id="splatExportButton" type="button" class="lot-editor-action-btn animation-editor-btn-icon" aria-label="Copy splat JSON" title="Copy splat config JSON">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
         </div>
     </div>
 
@@ -1541,6 +1665,10 @@
             responsiveness: 1.4
         },
         developerMode: false,  // Set this to true to activate developer mode
+        splatEditor: {
+            enabled: true,
+            defaultOpen: false
+        },
         // Compass configuration - easily adjustable
         compass: {
             northDirection: 0  // 0 = positive Z axis, 90 = positive X axis, etc.
@@ -1969,6 +2097,7 @@
         applyHoleAnimation(nextConfig);
         updateHoleCarouselLabel();
         if (typeof refreshBorderVisualState === 'function') refreshBorderVisualState();
+        if (typeof syncSplatEditorFromConfig === 'function') syncSplatEditorFromConfig();
     }
 
     function cycleHole(direction) {
@@ -2012,13 +2141,15 @@
     ];
 
     let iconsLoaded = 0;
+    function onIconsReady() {
+        tapDotConfigurations.forEach((config, index) => createTapDot(config, index));
+    }
     iconsToLoad.forEach(iconData => {
         textureLoader.load(iconData.url, (texture) => {
             iconTextures[iconData.name] = texture;
             iconsLoaded++;
             if (iconsLoaded === iconsToLoad.length) {
-                tapDotConfigurations.forEach((config, index) => createTapDot(config, index));
-                animate();
+                onIconsReady();
             }
         },
         undefined,
@@ -2026,6 +2157,10 @@
             console.error(`Error loading texture: ${iconData.url}`, err);
         });
     });
+
+    // Start render loop on next frame so 3D scene displays without waiting for icon textures.
+    // Icons are only needed for tap dots; the Luma splat and scene render right away.
+    requestAnimationFrame(animate);
 
     function generateUniqueColor(index) {
         index += 1;
@@ -2596,7 +2731,7 @@
         const progress = duration > 0 ? Math.min(pathAnimationState.segmentElapsed / duration, 1) : 1;
         applyPathPose(pathAnimationState.segmentIndex, progress);
         if (endedPlayback && typeof syncAnimationEditorFromState === 'function') {
-            setAnimationEditorStatus('Path reached the end. Enable Loop or press Play to restart.');
+            setAnimationEditorStatus('End of path. Press Play to restart.');
             syncAnimationEditorFromState();
         }
     }
@@ -2911,7 +3046,7 @@
         if (lotEditState.active) return;
         if (window.isTapdotPopupOpen || isDetailsOpen) return;
         const eventTarget = event.target;
-        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus, .animation-editor-toggle-wrap, .animation-editor-panel')) return;
+        if (eventTarget && eventTarget.closest && eventTarget.closest('#overlay-ui, .tapdot-popup, .details-box, .menu-container, .lot-editor-toggle-wrap, .lot-editor-panel, .lot-midpoint-plus, .editor-toggles-wrap, .animation-editor-panel, .splat-editor-panel')) return;
         const dx = event.clientX - lastPointerDownForTapDot.x;
         const dy = event.clientY - lastPointerDownForTapDot.y;
         if (Math.sqrt(dx * dx + dy * dy) > tapDotClickMoveThreshold) return;
@@ -2976,11 +3111,7 @@
         if (handled) suppressTapDotClickUntil = performance.now() + 700;
     }, { passive: true });
 
-    // Start animation once icons are loaded
-    // (If no icons, we simply call animate() immediately)
-    if (iconsToLoad.length === 0) {
-        animate();
-    }
+    // Render loop is started above (no longer gated on icon load)
 
     // Hart Bench Ranch UI JavaScript - Ported with Extreme Care
     
@@ -3017,7 +3148,27 @@
     const animationCaptureCheckpointButton = document.getElementById('animationCaptureCheckpointButton');
     const animationPlayToggleButton = document.getElementById('animationPlayToggleButton');
     const animationExportButton = document.getElementById('animationExportButton');
+    const splatEditorToggleWrap = document.getElementById('splatEditorToggleWrap');
+    const splatEditorToggle = document.getElementById('splatEditorToggle');
+    const splatEditorPanel = document.getElementById('splatEditorPanel');
+    const splatEditorCloseButton = document.getElementById('splatEditorCloseButton');
+    const splatEditorStatus = document.getElementById('splatEditorStatus');
+    const splatPosX = document.getElementById('splatPosX');
+    const splatPosY = document.getElementById('splatPosY');
+    const splatPosZ = document.getElementById('splatPosZ');
+    const splatRotX = document.getElementById('splatRotX');
+    const splatRotY = document.getElementById('splatRotY');
+    const splatRotZ = document.getElementById('splatRotZ');
+    const splatScale = document.getElementById('splatScale');
+    const splatExportButton = document.getElementById('splatExportButton');
     const tapDotGithubRawBase = 'https://raw.githubusercontent.com/HansenHomeAI/Red-Arrow-Ranch/main/3D%20Model%20Folders';
+
+    let isDetailsOpen = false;
+    let isAnimatingToNorth = false;
+    const splatEditorState = {
+        enabled: !!(parameters.splatEditor && parameters.splatEditor.enabled),
+        open: false
+    };
 
     setActiveHole(0, { resetCamera: true });
 
@@ -3039,14 +3190,10 @@
         }
     }
 
-    let isDetailsOpen = false;
     let isDraggingThumb = false;
     let dragStartY = 0;
     let startScrollTop = 0;
     let scrollbarFadeTimeout;
-    
-    // Camera animation variables
-    let isAnimatingToNorth = false;
     let animationStartTime = 0;
     let startCameraPosition = new Vector3();
     let targetCameraPosition = new Vector3();
@@ -3094,6 +3241,18 @@
         );
     }
 
+    function deleteCheckpointAtIndex(index) {
+        if (!pathAnimationState.checkpoints.length || index < 0 || index >= pathAnimationState.checkpoints.length) return;
+        pathAnimationState.playing = false;
+        pathAnimationState.checkpoints.splice(index, 1);
+        animationEditorState.selectedCheckpointIndex = Math.min(
+            Math.max(animationEditorState.selectedCheckpointIndex, 0),
+            Math.max(0, pathAnimationState.checkpoints.length - 1)
+        );
+        setAnimationEditorStatus(`Deleted checkpoint ${index + 1}.`);
+        syncAnimationEditorFromState();
+    }
+
     function renderAnimationCheckpointStrip() {
         if (!animationCheckpointStrip) return;
         const checkpoints = pathAnimationState.checkpoints;
@@ -3109,8 +3268,8 @@
             if (pathAnimationState.playing && index === getPathIndex(pathAnimationState.segmentIndex)) {
                 pill.classList.add('playing');
             }
-            pill.textContent = String(index + 1);
-            pill.title = `Checkpoint ${index + 1}`;
+            pill.innerHTML = `<span class="animation-checkpoint-pill-label">${index + 1}</span><button type="button" class="animation-checkpoint-delete" aria-label="Delete checkpoint ${index + 1}" title="Delete checkpoint">×</button>`;
+            pill.title = `Checkpoint ${index + 1} — click to jump, hover to delete`;
             pill.setAttribute('role', 'button');
             pill.setAttribute('tabindex', '0');
             pill.setAttribute('aria-label', `Go to checkpoint ${index + 1}`);
@@ -3118,13 +3277,23 @@
                 animationEditorState.selectedCheckpointIndex = index;
                 goToSelectedCheckpoint();
             };
-            pill.addEventListener('click', activate);
+            pill.addEventListener('click', (e) => {
+                if (e.target.closest('.animation-checkpoint-delete')) return;
+                activate();
+            });
             pill.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter' || event.key === ' ') {
                     event.preventDefault();
                     activate();
                 }
             });
+            const deleteBtn = pill.querySelector('.animation-checkpoint-delete');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    deleteCheckpointAtIndex(index);
+                });
+            }
             fragment.appendChild(pill);
         });
 
@@ -3138,15 +3307,18 @@
         const totalSeconds = getTotalPathSeconds();
         if (animationEditorSummary) {
             if (!checkpointCount) {
-                animationEditorSummary.textContent = '0 checkpoints captured';
+                animationEditorSummary.textContent = '0';
             } else {
-                const selected = animationEditorState.selectedCheckpointIndex + 1;
-                animationEditorSummary.textContent = `${checkpointCount} checkpoints • selected ${selected} • ${totalSeconds.toFixed(2)}s loop`;
+                animationEditorSummary.textContent = `${checkpointCount} • ${totalSeconds.toFixed(1)}s`;
             }
         }
         if (animationCaptureCheckpointButton) animationCaptureCheckpointButton.disabled = false;
         if (animationPlayToggleButton) {
-            animationPlayToggleButton.textContent = pathAnimationState.playing ? 'Pause' : 'Play';
+            const playSvg = animationPlayToggleButton.querySelector('.icon-play');
+            const pauseSvg = animationPlayToggleButton.querySelector('.icon-pause');
+            if (playSvg) playSvg.style.display = pathAnimationState.playing ? 'none' : 'block';
+            if (pauseSvg) pauseSvg.style.display = pathAnimationState.playing ? 'block' : 'none';
+            animationPlayToggleButton.setAttribute('aria-label', pathAnimationState.playing ? 'Pause' : 'Play');
             animationPlayToggleButton.disabled = checkpointCount < 2;
         }
         renderAnimationCheckpointStrip();
@@ -3167,13 +3339,13 @@
         if (!pathAnimationState.enabled) {
             pathAnimationState.playing = false;
             autoRotate = !!parameters.animation.autoRotate;
-            setAnimationEditorStatus('Path paused. Capture to add checkpoints.');
+            setAnimationEditorStatus('Paused. Capture to add.');
         } else if (pathAnimationState.checkpoints.length > 1) {
             autoRotate = false;
-            setAnimationEditorStatus('Path ready. Press Play.');
+            setAnimationEditorStatus('Ready. Press Play.');
         } else {
             pathAnimationState.playing = false;
-            setAnimationEditorStatus('Capture at least 2 checkpoints to play.');
+            setAnimationEditorStatus('Add 2+ checkpoints to play.');
         }
         syncAnimationEditorFromState();
     }
@@ -3214,7 +3386,7 @@
         }
         if (pathAnimationState.checkpoints.length < 2) {
             pathAnimationState.playing = false;
-            setAnimationEditorStatus('Add at least 2 checkpoints to play the path.');
+            setAnimationEditorStatus('Add 2+ checkpoints.');
             syncAnimationEditorFromState();
             return;
         }
@@ -3226,7 +3398,7 @@
         }
         const segmentCount = getPathSegmentCount();
         if (!segmentCount) {
-            setAnimationEditorStatus('Unable to play path. Add checkpoints first.');
+            setAnimationEditorStatus('Add checkpoints first.');
             syncAnimationEditorFromState();
             return;
         }
@@ -3286,7 +3458,7 @@
         pathAnimationState.loop = true;
         pathAnimationState.speed = 1;
         setAnimationEditorOpen(!!(parameters.animation.editor && parameters.animation.editor.defaultOpen));
-        setAnimationEditorStatus('Move camera, click Capture, repeat. Click checkpoint circles to jump.');
+        setAnimationEditorStatus('Capture to add. Click pill to jump. Hover pill to delete.');
         syncAnimationEditorFromState();
         window.__syncAnimationEditorUI = syncAnimationEditorFromState;
         window.__cameraPathDebug = {
@@ -3314,6 +3486,74 @@
             }),
             getSerializedPath: () => getSerializedCameraPathPayload()
         };
+    }
+
+    function setSplatEditorOpen(open) {
+        if (!splatEditorState.enabled || !splatEditorPanel || !splatEditorToggle) return;
+        splatEditorState.open = !!open;
+        splatEditorPanel.classList.toggle('active', splatEditorState.open);
+        splatEditorToggle.classList.toggle('active', splatEditorState.open);
+        splatEditorToggle.setAttribute('aria-pressed', splatEditorState.open ? 'true' : 'false');
+        if (splatEditorState.open) syncSplatEditorFromConfig();
+    }
+
+    function syncSplatEditorFromConfig() {
+        if (!splatEditorState.enabled || !splatEditorPanel) return;
+        const config = getActiveHoleConfig();
+        if (!config || !config.splat) return;
+        const s = config.splat;
+        const pos = s.position || { x: 0, y: 0, z: 0 };
+        const rot = s.rotation || { x: 0, y: 0, z: 0 };
+        const scaleVal = Number.isFinite(s.scale) ? s.scale : 1;
+        if (splatPosX) splatPosX.value = pos.x;
+        if (splatPosY) splatPosY.value = pos.y;
+        if (splatPosZ) splatPosZ.value = pos.z;
+        if (splatRotX) splatRotX.value = rot.x;
+        if (splatRotY) splatRotY.value = rot.y;
+        if (splatRotZ) splatRotZ.value = rot.z;
+        if (splatScale) splatScale.value = scaleVal;
+        if (splatEditorStatus) splatEditorStatus.textContent = `Editing: ${config.label}`;
+    }
+
+    function applySplatEditorToConfig() {
+        const config = getActiveHoleConfig();
+        if (!config) return;
+        if (!config.splat) config.splat = { position: { x: 0, y: 0, z: 0 }, rotation: { x: 0, y: 0, z: 0 }, scale: 1 };
+        const pos = parseFloat(splatPosX?.value) || 0;
+        const posY = parseFloat(splatPosY?.value) || 0;
+        const posZ = parseFloat(splatPosZ?.value) || 0;
+        const rotX = parseFloat(splatRotX?.value) || 0;
+        const rotY = parseFloat(splatRotY?.value) || 0;
+        const rotZ = parseFloat(splatRotZ?.value) || 0;
+        const scaleVal = parseFloat(splatScale?.value);
+        config.splat.position = { x: pos, y: posY, z: posZ };
+        config.splat.rotation = { x: rotX, y: rotY, z: rotZ };
+        config.splat.scale = Number.isFinite(scaleVal) && scaleVal > 0 ? scaleVal : 1;
+        const holeSplat = holeSplats[activeHoleIndex];
+        if (holeSplat) applyHoleSplatTransform(holeSplat, config);
+    }
+
+    function getSplatExportPayload() {
+        applySplatEditorToConfig();
+        const config = getActiveHoleConfig();
+        if (!config || !config.splat) return null;
+        const s = config.splat;
+        return {
+            position: { x: +(s.position?.x ?? 0), y: +(s.position?.y ?? 0), z: +(s.position?.z ?? 0) },
+            rotation: { x: +(s.rotation?.x ?? 0), y: +(s.rotation?.y ?? 0), z: +(s.rotation?.z ?? 0) },
+            scale: Number.isFinite(s.scale) ? s.scale : 1
+        };
+    }
+
+    function initializeSplatEditor() {
+        if (!splatEditorState.enabled) {
+            if (splatEditorToggleWrap) splatEditorToggleWrap.style.display = 'none';
+            if (splatEditorPanel) splatEditorPanel.style.display = 'none';
+            return;
+        }
+        if (!splatEditorPanel || !splatEditorToggle) return;
+        setSplatEditorOpen(!!(parameters.splatEditor && parameters.splatEditor.defaultOpen));
+        syncSplatEditorFromConfig();
     }
 
     function setLotEditorStatus(message) {
@@ -4087,6 +4327,40 @@
         }
     });
 
+    if (splatEditorToggle) {
+        splatEditorToggle.addEventListener('click', () => setSplatEditorOpen(!splatEditorState.open));
+    }
+    if (splatEditorCloseButton) {
+        splatEditorCloseButton.addEventListener('click', () => setSplatEditorOpen(false));
+    }
+    [splatPosX, splatPosY, splatPosZ, splatRotX, splatRotY, splatRotZ, splatScale].forEach((input) => {
+        if (!input) return;
+        input.addEventListener('input', () => applySplatEditorToConfig());
+        input.addEventListener('change', () => applySplatEditorToConfig());
+    });
+    if (splatExportButton) {
+        splatExportButton.addEventListener('click', async () => {
+            const payload = getSplatExportPayload();
+            if (!payload) return;
+            const jsonText = JSON.stringify(payload, null, 2);
+            const snippet = `splat: ${jsonText}`;
+            window.__splatExport = snippet;
+            try {
+                const copied = await copyTextToClipboard(snippet);
+                if (copied) {
+                    if (splatEditorStatus) splatEditorStatus.textContent = 'Copied splat config.';
+                    return;
+                }
+            } catch (error) {}
+            try {
+                window.prompt('Copy splat config', snippet);
+                if (splatEditorStatus) splatEditorStatus.textContent = 'Splat JSON ready.';
+            } catch (error) {
+                if (splatEditorStatus) splatEditorStatus.textContent = 'Unable to copy.';
+            }
+        });
+    }
+
     if (animationEditorToggle) {
         animationEditorToggle.addEventListener('click', () => {
             setAnimationEditorOpen(!animationEditorState.open);
@@ -4099,6 +4373,10 @@
     }
     window.addEventListener('keydown', (event) => {
         if (event.key !== 'Escape') return;
+        if (splatEditorState.open) {
+            setSplatEditorOpen(false);
+            return;
+        }
         if (!animationEditorState.open) return;
         setAnimationEditorOpen(false);
     });
@@ -4114,6 +4392,7 @@
 
     syncLotEditorInputsFromSelection();
     initializeAnimationEditor();
+    initializeSplatEditor();
 
     // Original base spacing and sizes:
     const baseMenuLeft = 20;
