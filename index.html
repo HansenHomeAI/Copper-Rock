@@ -1761,6 +1761,7 @@
             responsiveness: 1.4
         },
         developerMode: false,  // Set this to true to activate developer mode
+        developerToolsVisible: false,  // Set to true to show splat/lot/animation editor buttons (top right)
         splatEditor: {
             enabled: true,
             defaultOpen: false
@@ -3719,6 +3720,11 @@
         enabled: !!(parameters.splatEditor && parameters.splatEditor.enabled),
         open: false
     };
+
+    const editorTogglesWrap = document.getElementById('editorTogglesWrap');
+    if (editorTogglesWrap) {
+        editorTogglesWrap.style.display = parameters.developerToolsVisible ? 'flex' : 'none';
+    }
 
     setActiveHole(0, { resetCamera: true });
 
