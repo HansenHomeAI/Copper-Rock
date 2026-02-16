@@ -108,11 +108,13 @@ async function getSnapshot(page) {
             if (!el) return null;
             const rect = el.getBoundingClientRect();
             const styles = getComputedStyle(el);
+            const opacity = parseFloat(styles.opacity || '0');
             return {
-                active: el.classList.contains('active'),
+                active: styles.display !== 'none' && opacity > 0.02,
                 centerX: rect.left + rect.width * 0.5,
                 centerY: rect.top + rect.height * 0.5,
-                opacity: parseFloat(styles.opacity || '0')
+                opacity,
+                display: styles.display
             };
         })()
     }));
@@ -143,11 +145,20 @@ function validateAnimatedTapTransition(result, pointerType) {
         throw new Error(`${pointerType} tap feedback halo element was missing.`);
     }
     const haloDistance = Math.hypot(feedback.centerX - result.tap.x, feedback.centerY - result.tap.y);
-    if (haloDistance > 8) {
+    if (haloDistance > 36) {
         throw new Error(`${pointerType} tap feedback halo was misplaced (distance=${haloDistance.toFixed(2)}px).`);
     }
     if (!(feedback.active || feedback.opacity > 0.02)) {
-        throw new Error(`${pointerType} tap feedback halo was not visible (active=${feedback.active}, opacity=${feedback.opacity}).`);
+        throw new Error(`${pointerType} tap feedback halo was not visible (active=${feedback.active}, opacity=${feedback.opacity}, display=${feedback.display}).`);
+    }
+
+    const midFeedback = result.mid.feedback;
+    if (!midFeedback) {
+        throw new Error(`${pointerType} mid-transition feedback snapshot missing.`);
+    }
+    const feedbackTravel = Math.hypot(midFeedback.centerX - feedback.centerX, midFeedback.centerY - feedback.centerY);
+    if (feedbackTravel < 2) {
+        throw new Error(`${pointerType} feedback ring did not track 3D focus point (travel=${feedbackTravel.toFixed(3)}px).`);
     }
 }
 
@@ -179,6 +190,7 @@ async function attemptFocusByPointer(page, pointerType) {
             if (moved > 0.01) {
                 return {
                     tap,
+                    viewport,
                     moved,
                     before,
                     early,

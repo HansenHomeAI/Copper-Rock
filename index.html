@@ -45,43 +45,16 @@
             position: absolute;
             left: 0;
             top: 0;
-            width: 56px;
-            height: 56px;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
-            transform: translate(-50%, -50%);
+            transform: translate(-50%, -50%) scale(0.9);
             opacity: 0;
             pointer-events: none;
             z-index: 7;
-            border: 1.2px solid rgba(255, 255, 255, 0.72);
-            background: rgba(255, 255, 255, 0.18);
-            -webkit-backdrop-filter: blur(16px);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24), inset 0 0 0 0.8px rgba(255, 255, 255, 0.22);
-        }
-        #tap-focus-feedback::after {
-            content: '';
-            position: absolute;
-            inset: -11px;
-            border-radius: 50%;
-            border: 1.1px solid rgba(255, 255, 255, 0.55);
-            opacity: 0;
-            transform: scale(0.74);
-        }
-        #tap-focus-feedback.active {
-            animation: tap-focus-halo-pop 0.48s cubic-bezier(0.2, 0.82, 0.22, 1);
-        }
-        #tap-focus-feedback.active::after {
-            animation: tap-focus-halo-ring 0.48s cubic-bezier(0.2, 0.82, 0.22, 1);
-        }
-        @keyframes tap-focus-halo-pop {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.62); }
-            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
-        }
-        @keyframes tap-focus-halo-ring {
-            0% { opacity: 0; transform: scale(0.74); }
-            30% { opacity: 0.92; }
-            100% { opacity: 0; transform: scale(1.32); }
+            border: 1.5px solid rgba(255, 255, 255, 0.92);
+            background: transparent;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.34);
         }
         .tapdot-label-bubble {
             position: absolute;
@@ -2103,6 +2076,15 @@
             tapFocusTransition.active = false;
             tapFocusState.debug.transitionActive = false;
             tapFocusState.debug.transitionProgress = 0;
+            tapFocusFeedback.active = false;
+            tapFocusState.debug.feedbackActive = false;
+            tapFocusState.debug.feedbackProgress = 0;
+            tapFocusState.debug.feedbackScreenX = null;
+            tapFocusState.debug.feedbackScreenY = null;
+            if (tapFocusFeedbackEl) {
+                tapFocusFeedbackEl.style.opacity = '0';
+                tapFocusFeedbackEl.style.display = 'none';
+            }
         }
         controls.target.set(target.x, target.y, target.z);
         controls.minDistance = Number.isFinite(viewConfig.minDistance) ? viewConfig.minDistance : 0.6;
@@ -2314,7 +2296,11 @@
             activePointCount: 0,
             activeStride: 0,
             transitionActive: false,
-            transitionProgress: 0
+            transitionProgress: 0,
+            feedbackActive: false,
+            feedbackProgress: 0,
+            feedbackScreenX: null,
+            feedbackScreenY: null
         }
     };
 
@@ -2326,14 +2312,16 @@
         endTarget: new Vector3()
     };
 
+    const tapFocusFeedback = {
+        active: false,
+        startedAt: 0,
+        durationMs: 560,
+        worldPoint: new Vector3(),
+        projected: new Vector3()
+    };
+
     const tapFocusFeedbackEl = document.getElementById('tap-focus-feedback');
-    if (tapFocusFeedbackEl) {
-        tapFocusFeedbackEl.addEventListener('animationend', (event) => {
-            if (event.target !== tapFocusFeedbackEl) return;
-            if (event.animationName !== 'tap-focus-halo-pop') return;
-            tapFocusFeedbackEl.classList.remove('active');
-        });
-    }
+    if (tapFocusFeedbackEl) tapFocusFeedbackEl.style.display = 'none';
 
     window.__tapFocusDebug = {
         getState: () => {
@@ -2362,14 +2350,54 @@
         tapFocusState.debug.lastRejectedReason = reason || '';
     }
 
-    function showTapFocusFeedback(event) {
-        if (!tapFocusFeedbackEl || !event) return;
-        tapFocusFeedbackEl.style.left = `${event.clientX}px`;
-        tapFocusFeedbackEl.style.top = `${event.clientY}px`;
-        tapFocusFeedbackEl.classList.remove('active');
-        // Force reflow so repeated taps replay the feedback animation.
-        void tapFocusFeedbackEl.offsetWidth;
-        tapFocusFeedbackEl.classList.add('active');
+    function startTapFocusFeedback(worldPoint) {
+        if (!tapFocusFeedbackEl || !worldPoint) return;
+        tapFocusFeedback.active = true;
+        tapFocusFeedback.startedAt = performance.now();
+        tapFocusFeedback.worldPoint.copy(worldPoint);
+        tapFocusState.debug.feedbackActive = true;
+        tapFocusState.debug.feedbackProgress = 0;
+        tapFocusFeedbackEl.style.display = 'block';
+    }
+
+    function updateTapFocusFeedback(now = performance.now()) {
+        if (!tapFocusFeedbackEl) return false;
+        if (!tapFocusFeedback.active) {
+            if (tapFocusFeedbackEl.style.display !== 'none') {
+                tapFocusFeedbackEl.style.display = 'none';
+            }
+            return false;
+        }
+        const elapsedMs = Math.max(0, now - tapFocusFeedback.startedAt);
+        const progress = Math.min(elapsedMs / tapFocusFeedback.durationMs, 1);
+        const ease = 1 - Math.pow(1 - progress, 3);
+        tapFocusFeedback.projected.copy(tapFocusFeedback.worldPoint).project(camera);
+        const visible = tapFocusFeedback.projected.z > -1 && tapFocusFeedback.projected.z < 1;
+        const screenX = (tapFocusFeedback.projected.x + 1) * 0.5 * window.innerWidth;
+        const screenY = (1 - tapFocusFeedback.projected.y) * 0.5 * window.innerHeight;
+        tapFocusState.debug.feedbackScreenX = visible ? screenX : null;
+        tapFocusState.debug.feedbackScreenY = visible ? screenY : null;
+        tapFocusState.debug.feedbackProgress = progress;
+        if (visible) {
+            const fade = progress < 0.7 ? 1 : (1 - progress) / 0.3;
+            const clampedFade = Math.max(0, Math.min(fade, 1));
+            tapFocusFeedbackEl.style.left = `${screenX}px`;
+            tapFocusFeedbackEl.style.top = `${screenY}px`;
+            tapFocusFeedbackEl.style.opacity = `${clampedFade}`;
+            tapFocusFeedbackEl.style.transform = `translate(-50%, -50%) scale(${0.88 + ease * 0.12})`;
+            tapFocusFeedbackEl.style.display = 'block';
+        } else {
+            tapFocusFeedbackEl.style.opacity = '0';
+            tapFocusFeedbackEl.style.display = 'none';
+        }
+        if (progress >= 1) {
+            tapFocusFeedback.active = false;
+            tapFocusState.debug.feedbackActive = false;
+            tapFocusState.debug.feedbackProgress = 1;
+            tapFocusFeedbackEl.style.opacity = '0';
+            tapFocusFeedbackEl.style.display = 'none';
+        }
+        return true;
     }
 
     function beginTapFocusTransition(targetPoint) {
@@ -2526,7 +2554,7 @@
         }
         pauseCameraAutomationFromInteraction();
         isAnimatingToNorth = false;
-        showTapFocusFeedback(event);
+        startTapFocusFeedback(pickedPoint);
         beginTapFocusTransition(pickedPoint);
         tapFocusState.debug.successCount += 1;
         tapFocusState.debug.lastRejectedReason = '';
@@ -3320,6 +3348,7 @@
         // Update camera animation if active
         updateCameraAnimation();
         updateTapFocusTransition(now);
+        updateTapFocusFeedback(now);
 
         controls.update();
         updateMidpointButtons();
