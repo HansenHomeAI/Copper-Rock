@@ -102,8 +102,53 @@ async function waitForSceneReady(page, timeoutMs = 120000) {
 async function getSnapshot(page) {
     return page.evaluate(() => ({
         focus: window.__tapFocusDebug.getState(),
-        camera: window.__cameraPathDebug.getCamera()
+        camera: window.__cameraPathDebug.getCamera(),
+        feedback: (() => {
+            const el = document.getElementById('tap-focus-feedback');
+            if (!el) return null;
+            const rect = el.getBoundingClientRect();
+            const styles = getComputedStyle(el);
+            return {
+                active: el.classList.contains('active'),
+                centerX: rect.left + rect.width * 0.5,
+                centerY: rect.top + rect.height * 0.5,
+                opacity: parseFloat(styles.opacity || '0')
+            };
+        })()
     }));
+}
+
+function validateAnimatedTapTransition(result, pointerType) {
+    const totalMove = distance3(result.after.camera.target, result.before.camera.target);
+    const earlyMove = distance3(result.early.camera.target, result.before.camera.target);
+    const midMove = distance3(result.mid.camera.target, result.before.camera.target);
+    if (!(totalMove > 0.01)) {
+        throw new Error(`${pointerType} tap focus move too small (${totalMove.toFixed(5)}).`);
+    }
+    // Guard against instant hard jumps: early frame should not already equal final target.
+    if (!(earlyMove < totalMove * 0.95)) {
+        throw new Error(`${pointerType} tap focus appears non-animated (early=${earlyMove.toFixed(5)}, total=${totalMove.toFixed(5)}).`);
+    }
+    if (!(result.early.focus.transitionActive || result.mid.focus.transitionActive)) {
+        throw new Error(`${pointerType} tap focus transition flag was never active.`);
+    }
+    if (!(midMove > earlyMove + 0.001)) {
+        throw new Error(`${pointerType} tap focus did not progress smoothly (early=${earlyMove.toFixed(5)}, mid=${midMove.toFixed(5)}).`);
+    }
+    if (result.after.focus.transitionActive) {
+        throw new Error(`${pointerType} tap focus transition did not settle after animation window.`);
+    }
+    const feedback = result.early.feedback;
+    if (!feedback) {
+        throw new Error(`${pointerType} tap feedback halo element was missing.`);
+    }
+    const haloDistance = Math.hypot(feedback.centerX - result.tap.x, feedback.centerY - result.tap.y);
+    if (haloDistance > 8) {
+        throw new Error(`${pointerType} tap feedback halo was misplaced (distance=${haloDistance.toFixed(2)}px).`);
+    }
+    if (!(feedback.active || feedback.opacity > 0.02)) {
+        throw new Error(`${pointerType} tap feedback halo was not visible (active=${feedback.active}, opacity=${feedback.opacity}).`);
+    }
 }
 
 async function attemptFocusByPointer(page, pointerType) {
@@ -123,7 +168,11 @@ async function attemptFocusByPointer(page, pointerType) {
         } else {
             await page.mouse.click(tap.x, tap.y);
         }
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(60);
+        const early = await getSnapshot(page);
+        await page.waitForTimeout(120);
+        const mid = await getSnapshot(page);
+        await page.waitForTimeout(280);
         const after = await getSnapshot(page);
         if (after.focus.successCount > before.focus.successCount) {
             const moved = distance3(after.camera.target, before.camera.target);
@@ -132,6 +181,8 @@ async function attemptFocusByPointer(page, pointerType) {
                     tap,
                     moved,
                     before,
+                    early,
+                    mid,
                     after
                 };
             }
@@ -159,6 +210,7 @@ async function runDesktopTest(context, baseUrl) {
         const state = await getSnapshot(page);
         throw new Error(`Desktop tap focus did not move target. Last rejection reason: ${state.focus.lastRejectedReason || 'n/a'}. Errors: ${consoleErrors.join(' | ') || 'none'}`);
     }
+    validateAnimatedTapTransition(focusResult, 'Desktop');
 
     const beforeUi = await getSnapshot(page);
     const clickedUi = await page.evaluate(() => {
@@ -207,6 +259,7 @@ async function runTouchTest(browser, baseUrl) {
     if (!result) {
         throw new Error(`Touch tap focus did not move target. Errors: ${consoleErrors.join(' | ') || 'none'}`);
     }
+    validateAnimatedTapTransition(result, 'Touch');
     return result;
 }
 

@@ -41,6 +41,48 @@
             pointer-events: none;
             z-index: 5;
         }
+        #tap-focus-feedback {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 7;
+            border: 1.2px solid rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.18);
+            -webkit-backdrop-filter: blur(16px);
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.24), inset 0 0 0 0.8px rgba(255, 255, 255, 0.22);
+        }
+        #tap-focus-feedback::after {
+            content: '';
+            position: absolute;
+            inset: -11px;
+            border-radius: 50%;
+            border: 1.1px solid rgba(255, 255, 255, 0.55);
+            opacity: 0;
+            transform: scale(0.74);
+        }
+        #tap-focus-feedback.active {
+            animation: tap-focus-halo-pop 0.48s cubic-bezier(0.2, 0.82, 0.22, 1);
+        }
+        #tap-focus-feedback.active::after {
+            animation: tap-focus-halo-ring 0.48s cubic-bezier(0.2, 0.82, 0.22, 1);
+        }
+        @keyframes tap-focus-halo-pop {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.62); }
+            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.15); }
+        }
+        @keyframes tap-focus-halo-ring {
+            0% { opacity: 0; transform: scale(0.74); }
+            30% { opacity: 0.92; }
+            100% { opacity: 0; transform: scale(1.32); }
+        }
         .tapdot-label-bubble {
             position: absolute;
             transform: translate(-50%, -100%);
@@ -1343,6 +1385,7 @@
 <body>
     <div id="vignette"></div>
     <div id="tapdot-labels-layer"></div>
+    <div id="tap-focus-feedback" aria-hidden="true"></div>
     <div id="overlay" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; align-items: center; justify-content: center; color: white; font-size: 24px; font-family: Arial, sans-serif;">Lot #1</div>
 
     <!-- Compass temporarily hidden - will be used later for UI functionality -->
@@ -1858,7 +1901,10 @@
             controls.target.x = clampRebound(controls.target.x, -tl.x, tl.x);
             controls.target.z = clampRebound(controls.target.z, -tl.z, tl.z);
         }
-        const preserveLookTargetY = (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled);
+        const preserveLookTargetY = (
+            (typeof pathAnimationState !== 'undefined' && pathAnimationState.enabled) ||
+            (typeof tapFocusTransition !== 'undefined' && tapFocusTransition.active)
+        );
         if (!preserveLookTargetY) {
             const fallbackY = parameters.scene.origin.y;
             controls.target.y = Number.isFinite(manualFocusTargetY) ? manualFocusTargetY : fallbackY; // Preserve tap focus Y when set
@@ -2053,6 +2099,11 @@
         const viewConfig = holeConfig && holeConfig.view ? holeConfig.view : {};
         const target = viewConfig.target || parameters.scene.origin;
         manualFocusTargetY = null;
+        if (typeof tapFocusTransition !== 'undefined') {
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 0;
+        }
         controls.target.set(target.x, target.y, target.z);
         controls.minDistance = Number.isFinite(viewConfig.minDistance) ? viewConfig.minDistance : 0.6;
         controls.maxDistance = Math.max(controls.minDistance + 0.01, getConfiguredMaxDistance(holeConfig));
@@ -2111,6 +2162,7 @@
     }
 
     controls.addEventListener('change', () => {
+        if (typeof tapFocusTransition !== 'undefined' && tapFocusTransition.active) return;
         const activeConfig = getActiveHoleConfig();
         const baseTargetY = activeConfig && activeConfig.view && activeConfig.view.target
             ? activeConfig.view.target.y
@@ -2237,7 +2289,8 @@
     const tapFocusSettings = Object.freeze({
         targetSampleCount: 18000,
         maxRayDistanceSq: 0.0055,
-        maxScreenDistancePx: 120
+        maxScreenDistancePx: 120,
+        transitionDurationMs: 360
     });
 
     const tapFocusState = {
@@ -2259,9 +2312,28 @@
             lastFocusedPoint: null,
             activeSourcePointCount: 0,
             activePointCount: 0,
-            activeStride: 0
+            activeStride: 0,
+            transitionActive: false,
+            transitionProgress: 0
         }
     };
+
+    const tapFocusTransition = {
+        active: false,
+        startedAt: 0,
+        durationMs: tapFocusSettings.transitionDurationMs,
+        startTarget: new Vector3(),
+        endTarget: new Vector3()
+    };
+
+    const tapFocusFeedbackEl = document.getElementById('tap-focus-feedback');
+    if (tapFocusFeedbackEl) {
+        tapFocusFeedbackEl.addEventListener('animationend', (event) => {
+            if (event.target !== tapFocusFeedbackEl) return;
+            if (event.animationName !== 'tap-focus-halo-pop') return;
+            tapFocusFeedbackEl.classList.remove('active');
+        });
+    }
 
     window.__tapFocusDebug = {
         getState: () => {
@@ -2288,6 +2360,49 @@
 
     function setTapFocusRejectionReason(reason) {
         tapFocusState.debug.lastRejectedReason = reason || '';
+    }
+
+    function showTapFocusFeedback(event) {
+        if (!tapFocusFeedbackEl || !event) return;
+        tapFocusFeedbackEl.style.left = `${event.clientX}px`;
+        tapFocusFeedbackEl.style.top = `${event.clientY}px`;
+        tapFocusFeedbackEl.classList.remove('active');
+        // Force reflow so repeated taps replay the feedback animation.
+        void tapFocusFeedbackEl.offsetWidth;
+        tapFocusFeedbackEl.classList.add('active');
+    }
+
+    function beginTapFocusTransition(targetPoint) {
+        if (!targetPoint) return;
+        tapFocusTransition.active = true;
+        tapFocusTransition.startedAt = performance.now();
+        tapFocusTransition.durationMs = tapFocusSettings.transitionDurationMs;
+        tapFocusTransition.startTarget.copy(controls.target);
+        tapFocusTransition.endTarget.copy(targetPoint);
+        tapFocusState.debug.transitionActive = true;
+        tapFocusState.debug.transitionProgress = 0;
+    }
+
+    function updateTapFocusTransition(now = performance.now()) {
+        if (!tapFocusTransition.active) return false;
+        const elapsedMs = Math.max(0, now - tapFocusTransition.startedAt);
+        const progress = Math.min(elapsedMs / tapFocusTransition.durationMs, 1);
+        const easedProgress = easeOutCubic(progress);
+        controls.target.lerpVectors(
+            tapFocusTransition.startTarget,
+            tapFocusTransition.endTarget,
+            easedProgress
+        );
+        manualFocusTargetY = controls.target.y;
+        tapFocusState.debug.transitionProgress = progress;
+        if (progress >= 1) {
+            controls.target.copy(tapFocusTransition.endTarget);
+            manualFocusTargetY = tapFocusTransition.endTarget.y;
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 1;
+        }
+        return true;
     }
 
     function getTapFocusSampleCache(holeSplat) {
@@ -2410,9 +2525,9 @@
             return false;
         }
         pauseCameraAutomationFromInteraction();
-        manualFocusTargetY = pickedPoint.y;
-        controls.target.copy(pickedPoint);
-        controls.update();
+        isAnimatingToNorth = false;
+        showTapFocusFeedback(event);
+        beginTapFocusTransition(pickedPoint);
         tapFocusState.debug.successCount += 1;
         tapFocusState.debug.lastRejectedReason = '';
         tapFocusState.debug.lastFocusedPoint = {
@@ -3204,6 +3319,7 @@
 
         // Update camera animation if active
         updateCameraAnimation();
+        updateTapFocusTransition(now);
 
         controls.update();
         updateMidpointButtons();
@@ -3212,6 +3328,11 @@
     }
 
     function pauseCameraAutomationFromInteraction() {
+        if (tapFocusTransition.active) {
+            tapFocusTransition.active = false;
+            tapFocusState.debug.transitionActive = false;
+            tapFocusState.debug.transitionProgress = 1;
+        }
         autoRotate = false;
         if (pathAnimationState.playing) {
             pathAnimationState.playing = false;
