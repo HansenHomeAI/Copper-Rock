@@ -3461,6 +3461,9 @@
             const jitterThreshold = 30;
             const jitterLerp = 0.35;
             const jitterLerpY = 0.18;
+            const microLerp = 0.06;   /* much slower for tiny movements - low-pass filter jitter */
+            const microLerpY = 0.03;
+            const microDistance = 6;  /* below this px distance, use micro lerp */
             labelsData.forEach(({ tapDot, screenPos }) => {
                 const labelEl = tapDot.labelEl;
                 const rawX = screenPos.x;
@@ -3468,11 +3471,20 @@
                 let sx = tapDot._labelX;
                 let sy = tapDot._labelY;
                 if (sx === undefined) { sx = rawX; sy = rawY; }
-                const dx = Math.abs(rawX - sx);
-                const dy = Math.abs(rawY - sy);
-                const smooth = dx < jitterThreshold && dy < jitterThreshold;
-                const x = smooth ? sx + (rawX - sx) * jitterLerp : rawX;
-                const y = smooth ? sy + (rawY - sy) * jitterLerpY : rawY;
+                const dx = rawX - sx;
+                const dy = rawY - sy;
+                const adx = Math.abs(dx);
+                const ady = Math.abs(dy);
+                let x, y;
+                if (adx >= jitterThreshold || ady >= jitterThreshold) {
+                    x = rawX; y = rawY;  /* snap for large movement */
+                } else {
+                    const dist = Math.max(adx, ady);
+                    const lerpX = dist < microDistance ? microLerp : jitterLerp;
+                    const lerpY = dist < microDistance ? microLerpY : jitterLerpY;
+                    x = sx + dx * lerpX;
+                    y = sy + dy * lerpY;
+                }
                 tapDot._labelX = x;
                 tapDot._labelY = y;
                 labelEl.style.left = x + 'px';
