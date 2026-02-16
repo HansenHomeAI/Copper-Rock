@@ -172,15 +172,23 @@
             display: block;
         }
 
-        /* Parent Menu (default base values) */
+        /* Golden ratio: φ ≈ 1.618; short = 38.2%, long = 61.8% */
+        :root {
+            --phi: 1.618033988749895;
+            --menu-short: 0.382;  /* existing area (2 buttons) */
+            --menu-long: 0.618;   /* hole carousel area */
+        }
+
+        /* Parent Menu (default base values) - golden ratio layout */
         .menu-container {
             display: flex;
-            width: max-content;
+            /* Total content: existing (92px) + hole (149px) = 241px; + padding = 255px */
+            width: fit-content;
             min-height: 59px;
             padding: 7px;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
-            gap: 2px;
+            gap: 0px;
             border-radius: 30px;
             position: absolute;
             bottom: 20px;
@@ -214,6 +222,7 @@
         }
 
         .menu-button {
+            flex: 0 0 45px;
             width: 45px;
             height: 45px;
             position: relative;
@@ -284,9 +293,16 @@
             opacity: 1;
         }
 
+        #compassButton {
+            margin-left: 0px;
+            margin-right: 10px;
+        }
+
         .hole-carousel {
-            min-width: 178px;
+            flex: 0 0 149px;  /* long part of golden ratio (61.8% of 241px) */
+            min-width: 0;
             height: 45px;
+            margin-left: 0px;
             border-radius: 23.5px;
             display: inline-flex;
             align-items: center;
@@ -353,9 +369,9 @@
         }
 
         .hole-label-button {
-            min-width: 84px;
+            min-width: 52px;
             height: 34px;
-            padding: 0 10px;
+            padding: 0 6px;
             font-size: 14px;
             font-weight: 500;
             letter-spacing: 0.2px;
@@ -391,16 +407,15 @@
         }
 
         @media (hover:hover) {
-            .hole-nav-button:hover::before,
-            .hole-label-button:hover::before {
+            .hole-nav-button:hover::before {
                 -webkit-transform: scale(1);
                 transform: scale(1);
                 opacity: 1;
             }
         }
+        /* No hover effect on hole-label-button (Hole 1 title) */
 
-        .hole-nav-button.active::before,
-        .hole-label-button.active::before {
+        .hole-nav-button.active::before {
             -webkit-transform: scale(1);
             transform: scale(1);
             opacity: 1;
@@ -2871,19 +2886,15 @@
         let iconRotation = 0;
         
         if (mode === 'animationstart') {
-            // In animationStart mode: filled when at segment 0, arrow points toward primary focus
+            // In animationStart mode: filled when at segment 0, arrow always points at primary focus
             const isAtAnimationStart = pathAnimationState.enabled && pathAnimationState.checkpoints.length >= 2
                 && pathAnimationState.segmentIndex === 0;
             targetSrc = isAtAnimationStart ? filledIcon : outlineIcon;
+            // Rotate arrow to always point at primary focus (hole target / tap dot)
             const primaryFocus = getPrimaryFocusPoint();
-            const deltaX = primaryFocus.x - camera.position.x;
-            const deltaZ = primaryFocus.z - camera.position.z;
-            const primaryFocusBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
-            const target = controls.target;
-            const camDeltaX = camera.position.x - target.x;
-            const camDeltaZ = camera.position.z - target.z;
-            const cameraBearing = (Math.atan2(camDeltaX, camDeltaZ) * 180 / Math.PI + 360) % 360;
-            iconRotation = (primaryFocusBearing - cameraBearing + 360) % 360;
+            const bearingToPrimary = (Math.atan2(primaryFocus.x - camera.position.x, primaryFocus.z - camera.position.z) * 180 / Math.PI + 360) % 360;
+            const bearingToLookAt = (Math.atan2(controls.target.x - camera.position.x, controls.target.z - camera.position.z) * 180 / Math.PI + 360) % 360;
+            iconRotation = (bearingToLookAt - bearingToPrimary + 360) % 360;
         } else {
             // North mode: filled when pointing at north
             const target = controls.target;
@@ -2907,7 +2918,7 @@
             compassIcon.src = targetSrc; // Direct switch for now, no animation
         }
         
-        // Apply rotation - compass always points to north (77° in your case)
+        // Apply rotation - points to north (north mode) or primary focus (animationStart mode)
         compassIcon.style.transform = `rotate(${iconRotation}deg)`;
     }
 
