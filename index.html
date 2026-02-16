@@ -39,7 +39,7 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
-            z-index: 5;
+            z-index: 7;  /* above vignette (no z-index), below menu (10) so label visible in center */
         }
         .tapdot-label-bubble {
             position: absolute;
@@ -54,7 +54,7 @@
             color: rgba(255, 255, 255, 0.95);
             white-space: nowrap;
             box-sizing: border-box;
-            opacity: 0;
+            opacity: 0;  /* JS sets opacity via style; keep 0 as fallback until positioned */
             width: fit-content;
             min-width: 0;
             overflow: visible;
@@ -1124,6 +1124,14 @@
         .splat-editor-toggle-wrap {
             margin: 0;
         }
+        .lot-editor-toggle-wrap {
+            margin: 0;
+        }
+        .editor-toggles-wrap .lot-editor-toggle-wrap {
+            position: static;
+            right: auto;
+            bottom: auto;
+        }
         .animation-editor-toggle-icon-only {
             padding: 0;
             min-width: 40px;
@@ -1417,6 +1425,15 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/></svg>
         </button>
     </div>
+    <div class="lot-editor-toggle-wrap" id="lotEditorToggleWrap">
+        <button id="lotEditorToggle" class="lot-editor-toggle animation-editor-toggle-icon-only" type="button" aria-pressed="false" aria-label="Toggle lot edit mode" title="Edit lots / tap dot positions">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 17.5V21h3.5L17.2 10.3l-3.5-3.5L3 17.5z"></path>
+                <path d="M12.4 7.6l3.5 3.5"></path>
+                <path d="M18 6l1.2-1.2a1.8 1.8 0 1 1 2.5 2.5L20.5 8.5"></path>
+            </svg>
+        </button>
+    </div>
     <div class="animation-editor-toggle-wrap" id="animationEditorToggleWrap">
         <button id="animationEditorToggle" class="lot-editor-toggle animation-editor-toggle-icon-only" type="button" aria-pressed="false" aria-label="Toggle camera path editor">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1494,17 +1511,7 @@
         </div>
     </div>
 
-    <!-- <div class="lot-editor-toggle-wrap">
-        <button id="lotEditorToggle" class="lot-editor-toggle" type="button" aria-pressed="false" aria-label="Toggle lot edit mode">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 17.5V21h3.5L17.2 10.3l-3.5-3.5L3 17.5z"></path>
-                <path d="M12.4 7.6l3.5 3.5"></path>
-                <path d="M18 6l1.2-1.2a1.8 1.8 0 1 1 2.5 2.5L20.5 8.5"></path>
-            </svg>
-            <span>Edit Lots</span>
-        </button>
-    </div> -->
-    <div id="lotEditorPanel" class="lot-editor-panel" aria-live="polite">
+    <div id="lotEditorPanel" class="lot-editor-panel animation-editor-panel" aria-live="polite">
         <div class="lot-editor-title">Lot Line Editing</div>
         <div id="lotEditorStatus" class="lot-editor-status">Enable mode, then drag vertices to adjust boundaries.</div>
         <div id="lotEditorVertexName" class="lot-editor-vertex">Vertex: none selected</div>
@@ -1638,7 +1645,7 @@
                         duration: 6
                     },
                     {
-                        position: { x: -2.641508, y: 0.989013, z: -0.884306 },
+                        position: { x: -2.565974, y: 0.795137, z: -1.099114 },
                         lookAt: { x: -0.513935, y: -0.06, z: 0.602438 },
                         duration: 6
                     },
@@ -1648,8 +1655,8 @@
                         duration: 6
                     },
                     {
-                        position: { x: -1.478637, y: 0.494714, z: 1.97176 },
-                        lookAt: { x: -0.558323, y: -0.06, z: 0.578029 },
+                        position: { x: -1.551757, y: 0.678814, z: 2.079809 },
+                        lookAt: { x: -0.527514, y: -0.06, z: 0.583859 },
                         duration: 6
                     },
                     {
@@ -1660,6 +1667,31 @@
                     {
                         position: { x: 3.994974, y: 0.190696, z: -1.685259 },
                         lookAt: { x: -0.848563, y: -0.06, z: -0.116917 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 6.314053, y: 0.784203, z: -2.670156 },
+                        lookAt: { x: -0.958903, y: -0.06, z: -0.19409 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: -0.37479, y: 0.605938, z: -3.856862 },
+                        lookAt: { x: 0.080497, y: -0.06, z: 0.698219 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: -4.514964, y: 1.179413, z: -0.337807 },
+                        lookAt: { x: -0.044307, y: -0.06, z: 0.507526 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: -2.053034, y: 1.316579, z: 3.868697 },
+                        lookAt: { x: 0.415465, y: -0.06, z: 0.239249 },
+                        duration: 6
+                    },
+                    {
+                        position: { x: 5.452634, y: 0.497917, z: -2.833151 },
+                        lookAt: { x: 0.268662, y: -0.06, z: -0.209508 },
                         duration: 6
                     }
                 ]
@@ -1696,7 +1728,7 @@
         },
         // Compass configuration - easily adjustable
         compass: {
-            northDirection: 0  // 0 = positive Z axis, 90 = positive X axis, etc.
+            northDirection: 358  // 0 = positive Z axis, 90 = positive X axis, etc.
         }
     };
 
@@ -1707,22 +1739,10 @@
 
     // TapDots: info icons (No Photos) = label pops up above; camera icons = photo popup with caption
     // Camera icons use photos[] array for carousel; add more paths to include more images per location
-    const tapDotsConfig = { visible: false };  // off for now; set true when needed
+    const tapDotsConfig = { visible: true };  // Tap dot title overlay enabled
     const tapDotConfigurations = [
-        // Camera icons (have photos) - photos[] = carousel images, caption = bio in popup (scale 0.225 = 25% smaller)
-        { position: { x: -0.214299, y: -0.098, z: -0.445458 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Chicken Coop/1.jpg', '3D Model Folders/Chicken Coop/2.jpg', '3D Model Folders/Chicken Coop/3.jpg'], caption: 'Chicken Coop', priority: 'low' },
-        { position: { x: -0.736097, y: -0.051, z: -0.666932 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Covered Round Pen/1.jpg', '3D Model Folders/Covered Round Pen/2.jpg'], caption: 'Covered Round Pen', priority: 'medium' },
-        { position: { x: -0.006745, y: -0.072, z: -0.805941 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/European Barn/1.jpg', '3D Model Folders/European Barn/2.jpg', '3D Model Folders/European Barn/3.jpg', '3D Model Folders/European Barn/4.jpg', '3D Model Folders/European Barn/5.jpg', '3D Model Folders/European Barn/6.jpg'], caption: 'European Barn', priority: 'medium' },
-        { position: { x: -0.257345, y: -0.088, z: -0.377092 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Greenhouse/1.jpg', '3D Model Folders/Greenhouse/2.jpg'], caption: 'Greenhouse', priority: 'low' },
-        { position: { x: 0.378204, y: 0.014, z: 0.783111 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Heritage Barn/1.jpg', '3D Model Folders/Heritage Barn/2.jpg', '3D Model Folders/Heritage Barn/3.jpg', '3D Model Folders/Heritage Barn/4.jpg', '3D Model Folders/Heritage Barn/5.jpg', '3D Model Folders/Heritage Barn/6.jpg', '3D Model Folders/Heritage Barn/7.jpg', '3D Model Folders/Heritage Barn/8.jpg'], caption: 'Heritage Barn', priority: 'medium' },
-        { position: { x: -0.408896, y: 0.01, z: 0.613267 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Indoor Riding Arena/1.jpg', '3D Model Folders/Indoor Riding Arena/2.jpg', '3D Model Folders/Indoor Riding Arena/3.jpg'], caption: 'Indoor Riding Arena', priority: 'medium' },
-        { position: { x: -0.053877, y: -0.027, z: -0.195653 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Main Residence/1.jpg', '3D Model Folders/Main Residence/2.jpg', '3D Model Folders/Main Residence/3.jpg', '3D Model Folders/Main Residence/4.jpg', '3D Model Folders/Main Residence/5.jpg', '3D Model Folders/Main Residence/6.jpg', '3D Model Folders/Main Residence/7.jpg', '3D Model Folders/Main Residence/8.jpg', '3D Model Folders/Main Residence/9.jpg', '3D Model Folders/Main Residence/10.jpg', '3D Model Folders/Main Residence/11.jpg', '3D Model Folders/Main Residence/12.jpg', '3D Model Folders/Main Residence/13.jpg'], caption: 'Main Residence', priority: 'high' },
-        { position: { x: -0.503495, y: -0.114, z: -0.901147 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Outdoor Riding Arena/1.jpg', '3D Model Folders/Outdoor Riding Arena/2.jpg'], caption: 'Outdoor Riding Arena', priority: 'medium' },
-        { position: { x: -0.34914, y: -0.097, z: -0.200963 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Playground/1.jpg', '3D Model Folders/Playground/2.jpg', '3D Model Folders/Playground/3.jpg', '3D Model Folders/Playground/4.jpg'], caption: 'Playground', priority: 'low' },
-        { position: { x: -1.048662, y: -0.061, z: 0.301388 }, scale: 0.225, icon: 'camera', photos: ['3D Model Folders/Trail Riding Course/1.jpg'], caption: 'Trail Riding Course', priority: 'medium' },
-        // Info icons (No Photos) - caption = label that pops up above icon
-        { position: { x: -0.748377, y: -0.04, z: -0.413722 }, scale: 0.225, icon: 'info', caption: 'Garage Workshop', priority: 'low' },
-        { position: { x: -0.74994, y: -0.046, z: -0.250282 }, scale: 0.225, icon: 'info', caption: 'Hay Storage', priority: 'low' },
+        // Info icon - caption = label; enable Lot Line Editing to drag and reposition
+        { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 15', priority: 'low' },
     ];
 
     // Tap detection: scale with visual size (so hit area matches apparent dot size)
@@ -2242,6 +2262,15 @@
             tapDotEntry.labelEl = labelEl;
             const labelsLayer = document.getElementById('tapdot-labels-layer');
             if (labelsLayer) labelsLayer.appendChild(labelEl);
+            labelEl.addEventListener('pointerdown', (e) => {
+                if (!lotEditState.active || e.button !== 0) return;
+                e.preventDefault();
+                e.stopPropagation();
+                lotEditState.potentialTapDotDrag = tapDotEntry;
+                lotEditState.potentialTapDotDragPointerId = e.pointerId;
+                lotEditState.suppressNextClick = true;
+                setLotEditorStatus('Drag to move label.');
+            }, { passive: false });
         }
 
         tapDots.push(tapDotEntry);
@@ -2963,7 +2992,7 @@
         if (labelsVisible) {
             const overlapPadding = 6;
             const opacityLerp = 0.18;
-            const labelMaxDistance = 2.8;
+            const labelMaxDistance = 3.5;  /* hide label when camera is farther; lower = only visible when closer */
             function rectsOverlap(a, b) {
                 return !(a.right + overlapPadding <= b.left - overlapPadding ||
                     a.left - overlapPadding >= b.right + overlapPadding ||
@@ -2986,21 +3015,32 @@
                 return a.distance - b.distance;
             });
             const visibleRects = [];
-            const jitterThreshold = 30;
-            const jitterLerp = 0.35;
-            const jitterLerpY = 0.18;
+            const jitterThreshold = 100;
+            const jitterLerp = 0.05;
+            const jitterLerpY = 0.03;
+            const deadZone = 2.8;  /* below this: gentle glide instead of snap */
+            const glideLerp = 0.01;  /* very slow drift when movement is tiny */
+            const quantize = (v) => Math.round(v * 2) / 2;  /* filter sub-pixel jitter from projection */
             labelsData.forEach(({ tapDot, screenPos }) => {
                 const labelEl = tapDot.labelEl;
-                const rawX = screenPos.x;
-                const rawY = screenPos.y;
+                const rawX = quantize(screenPos.x);
+                const rawY = quantize(screenPos.y);
                 let sx = tapDot._labelX;
                 let sy = tapDot._labelY;
                 if (sx === undefined) { sx = rawX; sy = rawY; }
-                const dx = Math.abs(rawX - sx);
-                const dy = Math.abs(rawY - sy);
-                const smooth = dx < jitterThreshold && dy < jitterThreshold;
-                const x = smooth ? sx + (rawX - sx) * jitterLerp : rawX;
-                const y = smooth ? sy + (rawY - sy) * jitterLerpY : rawY;
+                const dx = rawX - sx;
+                const dy = rawY - sy;
+                const adx = Math.abs(dx);
+                const ady = Math.abs(dy);
+                let x, y;
+                if (adx < deadZone && ady < deadZone) {
+                    x = sx + dx * glideLerp;
+                    y = sy + dy * glideLerp;
+                } else {
+                    const smooth = adx < jitterThreshold && ady < jitterThreshold;
+                    x = smooth ? sx + dx * jitterLerp : rawX;
+                    y = smooth ? sy + dy * jitterLerpY : rawY;
+                }
                 tapDot._labelX = x;
                 tapDot._labelY = y;
                 labelEl.style.left = x + 'px';
@@ -3018,7 +3058,7 @@
                 if (op === undefined) op = targetOpacity;
                 tapDot._labelOpacity = op + (targetOpacity - op) * opacityLerp;
                 labelEl.style.opacity = tapDot._labelOpacity;
-                labelEl.style.pointerEvents = 'none';
+                labelEl.style.pointerEvents = lotEditState.active ? 'auto' : 'none';
                 if (!overlaps) visibleRects.push({ left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom });
             });
             const visibleTapDots = new Set(labelsData.map(d => d.tapDot));
@@ -3097,6 +3137,12 @@
         const x = Math.floor(event.clientX);
         const y = Math.floor(event.clientY);
         if (x < 0 || x >= hiddenCanvas.width || y < 0 || y >= hiddenCanvas.height) return;
+
+        // Only allow tap activation when titles/labels are visible - no invisible hit areas
+        const labelsLayer = document.getElementById('tapdot-labels-layer');
+        if (!labelsLayer || labelsLayer.style.display === 'none') return false;
+        const hasVisibleLabel = (td) => td.labelEl && td.config.caption && td._labelOpacity !== undefined && td._labelOpacity >= 0.01;
+
         try {
             renderHiddenCanvas();
             hiddenContext.getImageData(x, y, 1, 1);
@@ -3105,6 +3151,7 @@
         let closestDot = null;
         let closestDistance = Infinity;
         tapDots.forEach(tapDot => {
+            if (!hasVisibleLabel(tapDot)) return;
             let screenPos = tapDot.dot.position.clone().project(camera);
             let dotX = (screenPos.x + 1) / 2 * window.innerWidth;
             let dotY = -(screenPos.y - 1) / 2 * window.innerHeight;
@@ -3735,7 +3782,7 @@
     }
 
     function updateMidpointButtons() {
-        if (!lotEditState.active) {
+        if (!lotEditState.active || lotLinesConfig.visible === false) {
             clearMidpointButtons();
             return;
         }
