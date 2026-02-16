@@ -3458,37 +3458,28 @@
                 return a.distance - b.distance;
             });
             const visibleRects = [];
-            const snapThreshold = 55;
-            const baseStiffness = 0.6;
-            const maxStiffness = 22;
+            const snapThreshold = 40;
+            const lerpMin = 0.02;
+            const lerpMax = 0.55;
             labelsData.forEach(({ tapDot, screenPos }) => {
                 const labelEl = tapDot.labelEl;
                 const rawX = screenPos.x;
                 const rawY = screenPos.y;
                 let sx = tapDot._labelX;
                 let sy = tapDot._labelY;
-                let vx = tapDot._labelVelX ?? 0;
-                let vy = tapDot._labelVelY ?? 0;
-                if (sx === undefined) { sx = rawX; sy = rawY; vx = 0; vy = 0; }
-                const dx = rawX - sx;
-                const dy = rawY - sy;
+                if (sx === undefined) { sx = rawX; sy = rawY; }
+                const dx = Math.abs(rawX - sx);
+                const dy = Math.abs(rawY - sy);
                 const delta = Math.hypot(dx, dy);
                 let x, y;
                 if (delta >= snapThreshold) {
                     x = rawX;
                     y = rawY;
-                    tapDot._labelVelX = 0;
-                    tapDot._labelVelY = 0;
                 } else {
-                    const stiffness = Math.min(baseStiffness + (delta / 10) * (delta / 10), maxStiffness);
-                    const damping = 2.2 * Math.sqrt(stiffness);
-                    const dt = Math.min(deltaSeconds, 0.05);
-                    vx += (dx * stiffness - vx * damping) * dt;
-                    vy += (dy * stiffness - vy * damping) * dt;
-                    x = sx + vx * dt;
-                    y = sy + vy * dt;
-                    tapDot._labelVelX = vx;
-                    tapDot._labelVelY = vy;
+                    const t = delta / snapThreshold;
+                    const lerp = lerpMin + (lerpMax - lerpMin) * t * t;
+                    x = sx + (rawX - sx) * lerp;
+                    y = sy + (rawY - sy) * lerp;
                 }
                 tapDot._labelX = x;
                 tapDot._labelY = y;
