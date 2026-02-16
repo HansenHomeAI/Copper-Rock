@@ -292,7 +292,7 @@
             align-items: center;
             justify-content: center;
             gap: 2px;
-            padding: 0 4px;
+            padding: 0;
             position: relative;
             background: rgba(255, 255, 255, 0.05);
             overflow: hidden;
@@ -1728,7 +1728,9 @@
         },
         // Compass configuration - easily adjustable
         compass: {
-            northDirection: 358  // 0 = positive Z axis, 90 = positive X axis, etc.
+            northDirection: 358,  // 0 = positive Z axis, 90 = positive X axis, etc.
+            // northButtonMode: 'north' = rotate camera to face north; 'animationStart' = jump to path checkpoint 0
+            northButtonMode: 'animationStart'  // 'north' = rotate to face north; 'animationStart' = jump to path checkpoint 0
         }
     };
 
@@ -2633,7 +2635,8 @@
         checkpoints: [],
         playing: false,
         segmentIndex: 0,
-        segmentElapsed: 0
+        segmentElapsed: 0,
+        lookAtOverrideAtStart: null  // When set (primary focus), used for lookAt at segment 0
     };
     const tempPathPosition = new Vector3();
     const tempPathLookAt = new Vector3();
@@ -2746,7 +2749,14 @@
         catmullRomVector(p0, p1, p2, p3, clampedProgress, tempPathPosition);
         catmullRomVector(l0, l1, l2, l3, clampedProgress, tempPathLookAt);
         camera.position.copy(tempPathPosition);
-        controls.target.copy(tempPathLookAt);
+        // Use primary focus lookAt at segment 0 start (animationStart mode)
+        const override = pathAnimationState.lookAtOverrideAtStart;
+        if (override && segmentIndex === 0 && clampedProgress < 0.02) {
+            controls.target.set(override.x, override.y, override.z);
+            if (clampedProgress >= 0.015) pathAnimationState.lookAtOverrideAtStart = null;  // Clear after brief hold
+        } else {
+            controls.target.copy(tempPathLookAt);
+        }
         camera.lookAt(controls.target);
     }
 
@@ -2853,35 +2863,40 @@
     function updateCompassIcon() {
         if (!compassIcon) return;
         
-        const target = controls.target;
-        const cameraPos = camera.position;
-        
-        // Calculate the angle from target to camera (in XZ plane)
-        const deltaX = cameraPos.x - target.x;
-        const deltaZ = cameraPos.z - target.z;
-        
-        // Get camera bearing in degrees (where camera is looking FROM)
-        let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
-        
-        // FIXED: Compass should rotate to always point toward north relative to camera view
-        // Try inverted rotation direction to fix the east/west issue
-        let iconRotation = (cameraBearing - parameters.compass.northDirection + 360) % 360;
-        
-        // Check if camera is pointing at north (difference between camera bearing and north direction)
-        let bearingDifference = Math.abs(cameraBearing - parameters.compass.northDirection);
-        if (bearingDifference > 180) {
-            bearingDifference = 360 - bearingDifference; // Handle wrapping around 360°
-        }
-        
-        const tolerance = 15; // Degrees tolerance for "pointing at north"
-        const isPointingAtNorth = bearingDifference <= tolerance;
-        
-        // Icon URLs
+        const mode = (parameters.compass.northButtonMode || 'north').toLowerCase();
         const outlineIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthOutline.svg';
         const filledIcon = 'https://raw.githubusercontent.com/HansenHomeAI/FigmaSVGButtons/main/NorthFilled.svg';
         
-        // Determine target icon: filled when pointing at north, outline otherwise
-        const targetSrc = isPointingAtNorth ? filledIcon : outlineIcon;
+        let targetSrc = outlineIcon;
+        let iconRotation = 0;
+        
+        if (mode === 'animationstart') {
+            // In animationStart mode: filled when at segment 0, arrow points toward primary focus
+            const isAtAnimationStart = pathAnimationState.enabled && pathAnimationState.checkpoints.length >= 2
+                && pathAnimationState.segmentIndex === 0;
+            targetSrc = isAtAnimationStart ? filledIcon : outlineIcon;
+            const primaryFocus = getPrimaryFocusPoint();
+            const deltaX = primaryFocus.x - camera.position.x;
+            const deltaZ = primaryFocus.z - camera.position.z;
+            const primaryFocusBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+            const target = controls.target;
+            const camDeltaX = camera.position.x - target.x;
+            const camDeltaZ = camera.position.z - target.z;
+            const cameraBearing = (Math.atan2(camDeltaX, camDeltaZ) * 180 / Math.PI + 360) % 360;
+            iconRotation = (primaryFocusBearing - cameraBearing + 360) % 360;
+        } else {
+            // North mode: filled when pointing at north
+            const target = controls.target;
+            const cameraPos = camera.position;
+            const deltaX = cameraPos.x - target.x;
+            const deltaZ = cameraPos.z - target.z;
+            let cameraBearing = (Math.atan2(deltaX, deltaZ) * 180 / Math.PI + 360) % 360;
+            iconRotation = (cameraBearing - parameters.compass.northDirection + 360) % 360;
+            let bearingDifference = Math.abs(cameraBearing - parameters.compass.northDirection);
+            if (bearingDifference > 180) bearingDifference = 360 - bearingDifference;
+            const isPointingAtNorth = bearingDifference <= 15;
+            targetSrc = isPointingAtNorth ? filledIcon : outlineIcon;
+        }
         const currentSrc = compassIcon.src;
         
         // Switch icon if needed (check filename instead of full URL)
@@ -2894,6 +2909,58 @@
         
         // Apply rotation - compass always points to north (77° in your case)
         compassIcon.style.transform = `rotate(${iconRotation}deg)`;
+    }
+
+    // Get primary focus point (hole view target or first tap dot)
+    function getPrimaryFocusPoint() {
+        const holeConfig = typeof getActiveHoleConfig === 'function' ? getActiveHoleConfig() : null;
+        const viewTarget = holeConfig?.view?.target;
+        if (viewTarget && Number.isFinite(viewTarget.x)) {
+            return { x: viewTarget.x, y: viewTarget.y ?? parameters.scene.origin.y, z: viewTarget.z ?? parameters.scene.origin.z };
+        }
+        if (tapDots && tapDots.length > 0) {
+            const pos = tapDots[0].dot.position;
+            return { x: pos.x, y: pos.y, z: pos.z };
+        }
+        return { ...parameters.scene.origin };
+    }
+
+    // Jump to animation path checkpoint 0 and start playing; camera faces primary focus (hole target / tap dot)
+    function goToAnimationStart() {
+        if (!pathAnimationState.enabled || !pathAnimationState.checkpoints.length) {
+            if (typeof setAnimationEditorStatus === 'function') {
+                setAnimationEditorStatus('No path checkpoints. Add checkpoints first.');
+            }
+            return;
+        }
+        if (pathAnimationState.checkpoints.length < 2) {
+            if (typeof setAnimationEditorStatus === 'function') {
+                setAnimationEditorStatus('Add 2+ checkpoints.');
+            }
+            return;
+        }
+        const primaryFocus = getPrimaryFocusPoint();
+        pathAnimationState.lookAtOverrideAtStart = primaryFocus;
+        pathAnimationState.segmentIndex = 0;
+        pathAnimationState.segmentElapsed = 0;
+        animationEditorState.selectedCheckpointIndex = 0;
+        autoRotate = false;
+        isAnimatingToNorth = false;
+        // Apply checkpoint 0 position but look at primary focus (not north)
+        const cp0 = getPathCheckpoint(0);
+        if (cp0) {
+            camera.position.set(cp0.position.x, cp0.position.y, cp0.position.z);
+            controls.target.set(primaryFocus.x, primaryFocus.y, primaryFocus.z);
+            camera.lookAt(controls.target);
+            controls.update();
+        }
+        pathAnimationState.playing = true;
+        if (typeof setAnimationEditorStatus === 'function') {
+            setAnimationEditorStatus('Playing from start.');
+        }
+        if (typeof syncAnimationEditorFromState === 'function') {
+            syncAnimationEditorFromState();
+        }
     }
 
     // Smooth camera animation to face north
@@ -2992,7 +3059,7 @@
         if (labelsVisible) {
             const overlapPadding = 6;
             const opacityLerp = 0.18;
-            const labelMaxDistance = 3.5;  /* hide label when camera is farther; lower = only visible when closer */
+            const labelMaxDistance = 6;  /* hide label when camera is medium-far or farther */
             function rectsOverlap(a, b) {
                 return !(a.right + overlapPadding <= b.left - overlapPadding ||
                     a.left - overlapPadding >= b.right + overlapPadding ||
@@ -3015,32 +3082,21 @@
                 return a.distance - b.distance;
             });
             const visibleRects = [];
-            const jitterThreshold = 100;
-            const jitterLerp = 0.05;
-            const jitterLerpY = 0.03;
-            const deadZone = 2.8;  /* below this: gentle glide instead of snap */
-            const glideLerp = 0.01;  /* very slow drift when movement is tiny */
-            const quantize = (v) => Math.round(v * 2) / 2;  /* filter sub-pixel jitter from projection */
+            const jitterThreshold = 30;
+            const jitterLerp = 0.35;
+            const jitterLerpY = 0.18;
             labelsData.forEach(({ tapDot, screenPos }) => {
                 const labelEl = tapDot.labelEl;
-                const rawX = quantize(screenPos.x);
-                const rawY = quantize(screenPos.y);
+                const rawX = screenPos.x;
+                const rawY = screenPos.y;
                 let sx = tapDot._labelX;
                 let sy = tapDot._labelY;
                 if (sx === undefined) { sx = rawX; sy = rawY; }
-                const dx = rawX - sx;
-                const dy = rawY - sy;
-                const adx = Math.abs(dx);
-                const ady = Math.abs(dy);
-                let x, y;
-                if (adx < deadZone && ady < deadZone) {
-                    x = sx + dx * glideLerp;
-                    y = sy + dy * glideLerp;
-                } else {
-                    const smooth = adx < jitterThreshold && ady < jitterThreshold;
-                    x = smooth ? sx + dx * jitterLerp : rawX;
-                    y = smooth ? sy + dy * jitterLerpY : rawY;
-                }
+                const dx = Math.abs(rawX - sx);
+                const dy = Math.abs(rawY - sy);
+                const smooth = dx < jitterThreshold && dy < jitterThreshold;
+                const x = smooth ? sx + (rawX - sx) * jitterLerp : rawX;
+                const y = smooth ? sy + (rawY - sy) * jitterLerpY : rawY;
                 tapDot._labelX = x;
                 tapDot._labelY = y;
                 labelEl.style.left = x + 'px';
@@ -4673,10 +4729,20 @@
         }
     });
 
-    // Add click listener for compass button
+    // Add click listener for compass button (dual purpose: north face OR animation start)
     compassButton.addEventListener('click', () => {
-        animateCameraToNorth();
+        const mode = (parameters.compass.northButtonMode || 'north').toLowerCase();
+        if (mode === 'animationstart') {
+            goToAnimationStart();
+        } else {
+            animateCameraToNorth();
+        }
     });
+    // Set compass button tooltip based on mode
+    if (compassButton) {
+        const mode = (parameters.compass.northButtonMode || 'north').toLowerCase();
+        compassButton.title = mode === 'animationstart' ? 'Go to animation start' : 'Face north';
+    }
 
     if (holePrevButton) {
         holePrevButton.addEventListener('click', () => {
