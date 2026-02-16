@@ -1788,11 +1788,11 @@
         [
             { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 15', priority: 'low' },
         ],
-        // Hole 2
+        // Hole 18
         [],
-        // Hole 3
+        // Clubhouse
         [],
-        // Hole 4
+        // Hole 3 & 4
         [],
     ];
 
@@ -1826,7 +1826,7 @@
             { name: 'Lot_V24', position: { x: -0.520112, y: -0.14624, z: -1.139954 } },
             { name: 'Lot_V25', position: { x: -0.140558, y: -0.14154, z: -1.024829 } }
         ],
-        // Hole 2, 3, 4 - empty for now
+        // Hole 18, Clubhouse, Hole 3 & 4 - empty for now
         [], [], []
     ];
 
@@ -1857,7 +1857,7 @@
             { start: 'Lot_V18', end: 'Lot_V21' },
             { start: 'Lot_V21', end: 'Lot_V15' }
         ],
-        // Hole 2, 3, 4 - empty
+        // Hole 18, Clubhouse, Hole 3 & 4 - empty
         [], [], []
     ];
 
@@ -2013,8 +2013,8 @@
             path: null  // Uses parameters.animation.path at init (Hole 15's camera path)
         },
         {
-            id: 'hole-2',
-            label: 'Hole 2',
+            id: 'hole-18',
+            label: 'Hole 18',
             source: 'https://lumalabs.ai/embed/5c2af9e1-b55f-407c-ad17-d5ea73d4a2ee?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.6,
             splat: {
@@ -2041,8 +2041,8 @@
             path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
         },
         {
-            id: 'hole-3',
-            label: 'Hole 3',
+            id: 'clubhouse',
+            label: 'Clubhouse',
             source: 'https://lumalabs.ai/embed/f1e713a9-7bc4-43f0-8cb1-9c8fef376382?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.7,
             splat: {
@@ -2069,8 +2069,8 @@
             path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
         },
         {
-            id: 'hole-4',
-            label: 'Hole 4',
+            id: 'hole-3-4',
+            label: 'Hole 3 & 4',
             source: 'https://lumalabs.ai/embed/39b7b61b-1c13-4cda-b10d-886b723c9a6a?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.6,
             splat: {
@@ -3849,8 +3849,6 @@
         editorTogglesWrap.style.display = parameters.developerToolsVisible ? 'flex' : 'none';
     }
 
-    setActiveHole(0, { resetCamera: true });
-
     function resolveTapDotPhotoUrl(photoSrc) {
         if (!photoSrc) return '';
         if (/^(?:[a-z]+:)?\/\//i.test(photoSrc) || photoSrc.startsWith('data:') || photoSrc.startsWith('blob:')) {
@@ -3883,6 +3881,8 @@
         selectedCheckpointIndex: 0,
         lastExportJson: ''
     };
+
+    setActiveHole(0, { resetCamera: true });
 
     function setAnimationEditorStatus(message) {
         if (animationEditorStatus) {
