@@ -1654,7 +1654,15 @@
         },
         rebound: {
             speed: 0.2,
-            elasticity: 0.05
+            elasticity: 0.05,
+            minY: { speed: 0.06, overshoot: 0.06, maxOvershoot: 0.015, settleThreshold: 0.02 }
+        },
+        minYSpring: {
+            stiffness: 2.5,
+            damping: 0.88,
+            bounceCoefficient: 0.06,
+            maxBounceVelocity: 0.03,
+            adaptive: true  // scale force by sqrt(penetration) and distance for gentle feel
         },
         minDistance: {
             center: { x: 0, y: -0.06, z: 0 },
@@ -1840,10 +1848,7 @@
     controls.update();
 
     controls.addEventListener('change', () => {
-        // Restrict camera Y minimum
-        if (camera.position.y < parameters.camera.minY) {
-            camera.position.y += (parameters.camera.minY - camera.position.y) * parameters.rebound.speed;
-        }
+        // Min Y rebound handled in animate loop (after controls.update) for progressive resistance and jitter-free settle
 
         // Restrict target movement on X and Z axes (when targetLimit is set)
         const tl = parameters.scene.targetLimit;
@@ -1872,8 +1877,8 @@
             source: 'https://lumalabs.ai/embed/4f1a479a-1d13-4178-ade4-75a8fd4d9968?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.8,
             splat: {
-                position: { x: 0, y: 0, z: 0 },
-                rotation: { x: 0, y: 0, z: 0 },
+                position: { x: 0, y: 0.238, z: 0 },
+                rotation: { x: -1.2, y: 0, z: -3.6 },
                 scale: 1
             },
             view: {
@@ -2110,10 +2115,7 @@
             ? activeConfig.view.target.y
             : parameters.scene.origin.y;
         controls.target.y = targetY;
-        const minCameraY = targetY + parameters.camera.minHeightAboveTarget;
-        if (camera.position.y < minCameraY) {
-            camera.position.y += (minCameraY - camera.position.y) * 0.3;
-        }
+        // Min Y boundary handled in animate loop with spring bounce
     });
 
     if (developerMode) {
@@ -3009,7 +3011,54 @@
         // Update camera animation if active
         updateCameraAnimation();
 
+        // Min Y: sync orbit polar limit so floor is consistent at all distances
+        const activeConfig = getActiveHoleConfig();
+        const targetY = activeConfig?.view?.target?.y ?? parameters.scene.origin.y;
+        const minYFromTarget = targetY + parameters.camera.minHeightAboveTarget;
+        const minY = Math.max(parameters.camera.minY, minYFromTarget);
+        const distance = camera.position.distanceTo(controls.target);
+        const heightAboveTarget = minY - targetY;
+        if (distance > 0.01 && heightAboveTarget > 0 && heightAboveTarget <= distance) {
+            const polarForMinY = Math.acos(heightAboveTarget / distance);
+            const polarForMinYDeg = MathUtils.radToDeg(polarForMinY);
+            const penetrationDeg = 10;
+            controls.maxPolarAngle = MathUtils.degToRad(Math.min(89, Math.max(30, polarForMinYDeg + penetrationDeg)));
+        }
+
         controls.update();
+
+        try {
+            const cfg = parameters.rebound.minY || { speed: 0.06, overshoot: 0.06, maxOvershoot: 0.015, settleThreshold: 0.02 };
+            const dist = camera.position.distanceTo(controls.target);
+            const penetration = minY - camera.position.y;
+            const inSettleZone = dist > 0.01 && Math.abs(camera.position.y - minY) < cfg.settleThreshold;
+
+            if (inSettleZone) {
+                camera.position.y = minY;
+                if (controls._sphericalDelta) {
+                    controls._sphericalDelta.phi = 0;
+                    controls._sphericalDelta.theta = 0;
+                }
+                if (controls._spherical && dist > 0.01) {
+                    const h = minY - targetY;
+                    controls._spherical.phi = Math.acos(Math.max(-1, Math.min(1, h / dist)));
+                }
+            } else if (penetration > 0.001) {
+                const resistanceFactor = 1 + Math.min(penetration * 10, 2);
+                const effectiveSpeed = cfg.speed * resistanceFactor;
+                const bounce = Math.min(penetration * cfg.overshoot, cfg.maxOvershoot);
+                const reboundTarget = minY + bounce;
+                const prevY = camera.position.y;
+                camera.position.y += (reboundTarget - camera.position.y) * Math.min(effectiveSpeed, 0.35);
+                if (Math.abs(camera.position.y - prevY) > 1e-6 && controls._spherical && dist > 0.01) {
+                    const h = camera.position.y - targetY;
+                    controls._spherical.phi = Math.acos(Math.max(-1, Math.min(1, h / dist)));
+                }
+            }
+        } catch (e) {
+            console.warn('Min Y rebound:', e);
+        }
+
         updateMidpointButtons();
         renderer.render(scene, camera);
         requestAnimationFrame(animate);
