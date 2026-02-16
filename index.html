@@ -3782,6 +3782,16 @@
     const holePrevButton = document.getElementById('holePrevButton');
     const holeNextButton = document.getElementById('holeNextButton');
     const holeLabelButton = document.getElementById('holeLabelButton');
+    const holeCarousel = document.getElementById('holeCarousel');
+    document.addEventListener('click', (e) => {
+        const inCarousel = holeCarousel && holeCarousel.contains(e.target);
+        if (!inCarousel) return;
+        const prev = e.target.closest('#holePrevButton');
+        const next = e.target.closest('#holeNextButton');
+        const label = e.target.closest('#holeLabelButton');
+        if (prev && !prev.disabled) cycleHole(-1);
+        else if ((next || label) && (!next || !next.disabled)) cycleHole(1);
+    }, true);
     const detailsBox = document.getElementById('detailsBox');
     const overlayUI = document.getElementById('overlay-ui');
     const detailsContent = document.getElementById('detailsContent');
@@ -5272,24 +5282,6 @@
     if (compassButton) {
         const mode = (parameters.compass.northButtonMode || 'north').toLowerCase();
         compassButton.title = mode === 'animationstart' ? 'Go to animation start' : 'Face north';
-    }
-
-    if (holePrevButton) {
-        holePrevButton.addEventListener('click', () => {
-            cycleHole(-1);
-        });
-    }
-
-    if (holeNextButton) {
-        holeNextButton.addEventListener('click', () => {
-            cycleHole(1);
-        });
-    }
-
-    if (holeLabelButton) {
-        holeLabelButton.addEventListener('click', () => {
-            cycleHole(1);
-        });
     }
 
     fullscreenButton.addEventListener('click', async () => {
