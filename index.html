@@ -1445,8 +1445,8 @@
                     <path d="M14.5 18.5L8 12l6.5-6.5"></path>
                 </svg>
             </button>
-            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Hole 1">
-                <span id="holeLabelText">Hole 1</span>
+            <button id="holeLabelButton" class="hole-label-button" type="button" aria-label="Hole 15">
+                <span id="holeLabelText">Hole 15</span>
             </button>
             <button id="holeNextButton" class="hole-nav-button" type="button" aria-label="Next hole">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1510,7 +1510,7 @@
             <div class="lot-editor-title">Splat Transform</div>
             <button id="splatEditorCloseButton" class="animation-editor-close" type="button" aria-label="Close">×</button>
         </div>
-        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 1</div>
+        <div id="splatEditorStatus" class="lot-editor-status animation-editor-status-compact">Editing: Hole 15</div>
         <div class="lot-editor-grid splat-editor-grid">
             <div class="lot-editor-field">
                 <label for="splatPosX">Pos X</label>
@@ -1761,7 +1761,7 @@
             responsiveness: 1.4
         },
         developerMode: false,  // Set this to true to activate developer mode
-        developerToolsVisible: false,  // Set to true to show splat/lot/animation editor buttons (top right)
+        developerToolsVisible: true,  // Editor buttons (splat, lot, animation) in top right
         splatEditor: {
             enabled: true,
             defaultOpen: false
@@ -1784,9 +1784,9 @@
     // Per-hole: each hole has its own tap dots (no cross-referencing between holes)
     const tapDotsConfig = { visible: true };  // Tap dot title overlay enabled
     const tapDotConfigurationsByHole = [
-        // Hole 1
+        // Hole 15
         [
-            { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 1', priority: 'low' },
+            { position: { x: -0.524709, y: 0.119, z: 0.364283 }, scale: 0.225, icon: 'info', caption: 'Hole 15', priority: 'low' },
         ],
         // Hole 2
         [],
@@ -1802,7 +1802,7 @@
     // Centralized control section for BorderDots and BorderLines (lot lines)
     // Per-hole: each hole has its own lot lines (no cross-referencing between holes)
     const borderDotPositionsByHole = [
-        // Hole 1
+        // Hole 15
         [
             { name: 'Lot_V1', position: { x: 0.619899, y: -0.07236, z: 0.910146 } },
             { name: 'Lot_V4', position: { x: 0.613988, y: -0.12955, z: -0.646242 } },
@@ -1831,7 +1831,7 @@
     ];
 
     const borderLineConnectionsByHole = [
-        // Hole 1
+        // Hole 15
         [
             { start: 'Lot_V1', end: 'Lot_V18' },
             { start: 'Lot_V18', end: 'Lot_V4' },
@@ -1985,8 +1985,8 @@
     // Golf hole configurations. Each hole can be tuned independently (source, orientation, camera and animation).
     const holeConfigurations = [
         {
-            id: 'hole-1',
-            label: 'Hole 1',
+            id: 'hole-15',
+            label: 'Hole 15',
             source: 'https://lumalabs.ai/embed/4f1a479a-1d13-4178-ade4-75a8fd4d9968?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.8,
             splat: {
@@ -2009,7 +2009,8 @@
                 startRadius: 2.8,
                 initialAngle: 292,
                 center: { x: 0, y: -0.06, z: 0 }
-            }
+            },
+            path: null  // Uses parameters.animation.path at init (Hole 15's camera path)
         },
         {
             id: 'hole-2',
@@ -2036,7 +2037,8 @@
                 startRadius: 2.9,
                 initialAngle: 310,
                 center: { x: 0, y: -0.06, z: 0 }
-            }
+            },
+            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
         },
         {
             id: 'hole-3',
@@ -2063,7 +2065,8 @@
                 startRadius: 3,
                 initialAngle: 274,
                 center: { x: 0, y: -0.06, z: 0 }
-            }
+            },
+            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
         },
         {
             id: 'hole-4',
@@ -2090,7 +2093,8 @@
                 startRadius: 2.85,
                 initialAngle: 332,
                 center: { x: 0, y: -0.06, z: 0 }
-            }
+            },
+            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
         }
     ];
 
@@ -2207,7 +2211,7 @@
         const holeLabelButton = document.getElementById('holeLabelButton');
         if (!holeLabelText) return;
         const config = getActiveHoleConfig();
-        const label = config ? config.label : 'Hole 1';
+        const label = config ? config.label : 'Hole 15';
         holeLabelText.textContent = label;
         if (holeLabelButton) {
             holeLabelButton.setAttribute('aria-label', label);
@@ -2218,8 +2222,9 @@
         const prevBtn = document.getElementById('holePrevButton');
         const nextBtn = document.getElementById('holeNextButton');
         const total = holeConfigurations.length;
-        if (prevBtn) prevBtn.disabled = total <= 1;
-        if (nextBtn) nextBtn.disabled = total <= 1;
+        const hasMultiple = total > 1;
+        if (prevBtn) prevBtn.disabled = !hasMultiple;
+        if (nextBtn) nextBtn.disabled = !hasMultiple;
     }
 
     function setActiveHole(nextIndex, options = {}) {
@@ -2238,12 +2243,21 @@
         borderDots = borderDotsByHole[activeHoleIndex] || {};
         borderLines = borderLinesByHole[activeHoleIndex] || [];
         borderLineConnections = borderLineConnectionsByHole[activeHoleIndex] || [];
+        pathAnimationState = pathAnimationStateByHole[activeHoleIndex] || pathAnimationStateByHole[0];
+        pathAnimationState.playing = false;
+        pathAnimationState.segmentIndex = 0;
+        pathAnimationState.segmentElapsed = 0;
+        if (pathAnimationState.enabled && pathAnimationState.checkpoints.length > 1) {
+            pathAnimationState.playing = true;
+            autoRotate = false;
+        }
         applyHoleSplatTransform(nextSplat, nextConfig);
         applyHoleView(nextConfig, resetCamera);
         applyHoleAnimation(nextConfig);
         updateHoleCarouselLabel();
         updateHoleCarouselButtons();
         if (typeof refreshBorderVisualState === 'function') refreshBorderVisualState();
+        if (typeof syncAnimationEditorFromState === 'function') syncAnimationEditorFromState();
         if (typeof syncSplatEditorFromConfig === 'function') syncSplatEditorFromConfig();
     }
 
@@ -2845,6 +2859,12 @@
         const dotOpacity = getVisibleDotOpacity();
         const selectedName = lotEditState.selectedVertexName;
         const mergeTargetName = lotEditState.dragging.mergeTargetName;
+        tapDots.forEach((td) => {
+            if (td.holeIndex !== activeHoleIndex) {
+                td.dot.visible = false;
+                td.iconMesh.visible = false;
+            }
+        });
         Object.entries(borderDots).forEach(([name, dotMesh]) => {
             dotMesh.visible = showLotLines;
             dotMesh.material.opacity = dotOpacity;
@@ -3064,17 +3084,6 @@
         updateMidpointButtons();
     });
 
-    const pathAnimationDefaults = parameters.animation.path || {};
-    const pathAnimationState = {
-        enabled: !!pathAnimationDefaults.enabled,
-        loop: pathAnimationDefaults.loop !== false,
-        speed: Number.isFinite(pathAnimationDefaults.speed) && pathAnimationDefaults.speed > 0 ? pathAnimationDefaults.speed : 1,
-        checkpoints: [],
-        playing: false,
-        segmentIndex: 0,
-        segmentElapsed: 0,
-        lookAtOverrideAtStart: null  // When set (primary focus), used for lookAt at segment 0
-    };
     const tempPathPosition = new Vector3();
     const tempPathLookAt = new Vector3();
     let lastAnimationFrameTime = performance.now();
@@ -3111,6 +3120,24 @@
         const duration = Number.isFinite(rawCheckpoint?.duration) && rawCheckpoint.duration > 0.1 ? rawCheckpoint.duration : 5;
         return { position, lookAt, duration };
     }
+
+    function createPathAnimationStateForHole(holeIndex) {
+        const holeConfig = holeConfigurations[holeIndex];
+        const pathConfig = (holeConfig?.path === null ? parameters.animation.path : holeConfig?.path) || parameters.animation.path || {};
+        const defaults = pathConfig;
+        return {
+            enabled: !!defaults.enabled,
+            loop: defaults.loop !== false,
+            speed: Number.isFinite(defaults.speed) && defaults.speed > 0 ? defaults.speed : 1,
+            checkpoints: Array.isArray(defaults.checkpoints) ? defaults.checkpoints.map(sanitizePathCheckpoint) : [],
+            playing: false,
+            segmentIndex: 0,
+            segmentElapsed: 0,
+            lookAtOverrideAtStart: null
+        };
+    }
+    const pathAnimationStateByHole = holeConfigurations.map((_, i) => createPathAnimationStateForHole(i));
+    let pathAnimationState = pathAnimationStateByHole[0];
 
     function getPathSegmentCount() {
         const count = pathAnimationState.checkpoints.length;
@@ -3264,19 +3291,20 @@
     }
 
     function syncSerializedPathToParameters() {
-        parameters.animation.path = getSerializedCameraPathPayload();
+        const holeConfig = holeConfigurations[activeHoleIndex];
+        if (holeConfig) {
+            if (!holeConfig.path) holeConfig.path = { enabled: true, loop: true, speed: 1, checkpoints: [] };
+            holeConfig.path = getSerializedCameraPathPayload();
+        }
     }
 
-    const configuredPathCheckpoints = Array.isArray(pathAnimationDefaults.checkpoints) ? pathAnimationDefaults.checkpoints : [];
-    pathAnimationState.checkpoints = configuredPathCheckpoints.map(sanitizePathCheckpoint);
-    if (pathAnimationState.enabled) {
+    if (pathAnimationState.enabled && pathAnimationState.checkpoints.length) {
         applyPathCheckpoint(0);
         if (pathAnimationState.checkpoints.length > 1) {
             pathAnimationState.playing = true;
             autoRotate = false;
         }
     }
-    syncSerializedPathToParameters();
 
     // Enhanced compass logic with icon switching
     function getCompassRotation() {
@@ -4195,7 +4223,7 @@
         if (splatRotY) splatRotY.value = rot.y;
         if (splatRotZ) splatRotZ.value = rot.z;
         if (splatScale) splatScale.value = scaleVal;
-        if (splatEditorStatus) splatEditorStatus.textContent = 'Editing: ' + (getActiveHoleConfig()?.label || 'Hole 1');
+        if (splatEditorStatus) splatEditorStatus.textContent = 'Editing: ' + (getActiveHoleConfig()?.label || 'Hole 15');
     }
 
     function applySplatEditorToConfig() {
