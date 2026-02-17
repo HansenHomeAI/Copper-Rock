@@ -1795,11 +1795,12 @@
         ],
         // Clubhouse
         [
-            { position: { x: 0, y: 0.1, z: 0.4 }, scale: 0.225, icon: 'info', caption: 'Clubhouse', priority: 'low' },
+            { position: { x: 0.022137, y: -0.044, z: -0.017594 }, scale: 0.225, icon: 'info', caption: 'Clubhouse', priority: 'low' },
         ],
         // Hole 3 & 4
         [
-            { position: { x: 0, y: 0.1, z: 0.4 }, scale: 0.225, icon: 'info', caption: 'Hole 3 & 4', priority: 'low' },
+            { position: { x: -3.122833, y: -0.464, z: 0.947059 }, scale: 0.225, icon: 'info', caption: 'Hole 3', priority: 'low' },
+            { position: { x: 0.605007, y: -0.398, z: 0.233991 }, scale: 0.225, icon: 'info', caption: 'Hole 4', priority: 'low' },
         ],
     ];
 
@@ -2064,7 +2065,7 @@
             source: 'https://lumalabs.ai/embed/f1e713a9-7bc4-43f0-8cb1-9c8fef376382?mode=sparkles&background=%23ffffff&color=%23000000&showTitle=true&loadBg=true&logoPosition=bottom-left&infoPosition=bottom-right&cinematicVideo=undefined&showMenu=false',
             revealDuration: 2.7,
             splat: {
-                position: { x: 0, y: 0.328, z: 0 },
+                position: { x: 0, y: 0.45, z: 0 },
                 rotation: { x: 0, y: -6, z: 0 },
                 scale: 1
             },
@@ -2084,7 +2085,19 @@
                 initialAngle: 274,
                 center: { x: 0, y: -0.06, z: 0 }
             },
-            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
+            path: {
+                enabled: true,
+                loop: true,
+                speed: 1,
+                checkpoints: [
+                    { position: { x: 3.507141, y: 0.138803, z: 1.667063 }, lookAt: { x: 0.536174, y: -0.108594, z: 0.223898 }, duration: 5 },
+                    { position: { x: 1.528803, y: 0.245535, z: -1.357343 }, lookAt: { x: -0.051607, y: -0.120801, z: -0.029416 }, duration: 5 },
+                    { position: { x: -1.599397, y: 0.317612, z: -1.389454 }, lookAt: { x: -0.051607, y: -0.120801, z: -0.029416 }, duration: 5 },
+                    { position: { x: -1.231036, y: 0.135426, z: 0.150345 }, lookAt: { x: -0.025049, y: -0.120801, z: -0.079923 }, duration: 5 },
+                    { position: { x: -1.809225, y: 0.494415, z: 3.490343 }, lookAt: { x: -0.060849, y: -0.120801, z: 0.048164 }, duration: 5 },
+                    { position: { x: 3.686517, y: 1.476685, z: 3.019775 }, lookAt: { x: -0.115363, y: -0.120801, z: -0.004466 }, duration: 5 }
+                ]
+            }
         },
         {
             id: 'hole-3-4',
@@ -2112,7 +2125,19 @@
                 initialAngle: 332,
                 center: { x: 0, y: -0.06, z: 0 }
             },
-            path: { enabled: false, loop: true, speed: 1, checkpoints: [] }
+            path: {
+                enabled: true,
+                loop: true,
+                speed: 1,
+                checkpoints: [
+                    { position: { x: 2.757621, y: 0.14, z: -1.856277 }, lookAt: { x: 0.838959, y: -0.397609, z: -0.70158 }, duration: 5 },
+                    { position: { x: -6.383873, y: 0.527827, z: -1.453392 }, lookAt: { x: -2.852345, y: -0.406154, z: 0.600815 }, duration: 5 },
+                    { position: { x: -3.477308, y: 0.139992, z: 2.074735 }, lookAt: { x: -2.161637, y: -0.39062, z: 1.341477 }, duration: 5 },
+                    { position: { x: -1.201707, y: 0.137366, z: 1.059447 }, lookAt: { x: 0.509912, y: -0.379055, z: 0.269093 }, duration: 5 },
+                    { position: { x: 2.34527, y: 0.137455, z: 1.421066 }, lookAt: { x: 0.564805, y: -0.379055, z: 0.237545 }, duration: 5 },
+                    { position: { x: 4.729459, y: 0.730712, z: -1.764914 }, lookAt: { x: 1.392704, y: -0.362453, z: 0.008773 }, duration: 5 }
+                ]
+            }
         }
     ];
 
